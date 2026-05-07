@@ -4,20 +4,62 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- design.md inspired tokens (Anthropic-like) -->
-    <color name="canvas">#FFFAF9F5</color>
-    <color name="surface_card">#FFEFE9DE</color>
-    <color name="surface_dark">#FF181715</color>
-    <color name="surface_dark_elevated">#FF252320</color>
-    <color name="hairline">#FFE6DFD8</color>
+    <!-- ── Warm Cream Canvas ── -->
+    <color name="canvas">#FFF8F4EF</color>
+    <color name="canvas_secondary">#FFF3EDE5</color>
 
-    <color name="ink">#FF141413</color>
-    <color name="body">#FF3D3D3A</color>
-    <color name="muted">#FF6C6A64</color>
-    <color name="on_dark">#FFFAF9F5</color>
-    <color name="on_dark_soft">#FFA09D96</color>
+    <!-- ── Surfaces ── -->
+    <color name="surface_card">#FFFAF6F1</color>
+    <color name="surface_card_elevated">#FFFFFFFF</color>
+    <color name="surface_dark">#FF1A1F36</color>
+    <color name="surface_dark_elevated">#FF252A42</color>
+    <color name="surface_dark_card">#FF2E3350</color>
 
-    <color name="primary">#FFCC785C</color>
-    <color name="primary_active">#FFA9583E</color>
+    <!-- ── Hairlines & Dividers ── -->
+    <color name="hairline">#FFE8E0D8</color>
+    <color name="hairline_dark">#33FFFFFF</color>
+
+    <!-- ── Text Colors ── -->
+    <color name="ink">#FF1A1A2E</color>
+    <color name="body">#FF3D3D4A</color>
+    <color name="muted">#FF8A8892</color>
+    <color name="on_dark">#FFF8F4EF</color>
+    <color name="on_dark_soft">#FFA0A0B0</color>
+    <color name="on_dark_muted">#FF6E6E80</color>
+
+    <!-- ── Primary Accent: Muted Coral ── -->
+    <color name="primary">#FFD4836B</color>
+    <color name="primary_light">#FFDFAB98</color>
+    <color name="primary_active">#FFB8634D</color>
+    <color name="primary_soft">#1AD4836B</color>
     <color name="on_primary">#FFFFFFFF</color>
+
+    <!-- ── Status Colors ── -->
+    <color name="status_success">#FF5BAE7C</color>
+    <color name="status_warning">#FFE8A838</color>
+    <color name="status_error">#FFD45B5B</color>
+    <color name="status_info">#FF5B8FD4</color>
+
+    <!-- ── Gradient endpoints ── -->
+    <color name="gradient_warm_start">#FFF8F4EF</color>
+    <color name="gradient_warm_end">#FFEFE8DF</color>
+    <color name="gradient_nav_start">#FF1A1F36</color>
+    <color name="gradient_nav_end">#FF0F1225</color>
+
+    <!-- ── Overlays ── -->
+    <color name="overlay_dark">#80000000</color>
+    <color name="overlay_light">#40FFFFFF</color>
+    <color name="camera_overlay">#CC1A1F36</color>
+
+    <!-- ── Glow / AI accents ── -->
+    <color name="glow_coral">#40D4836B</color>
+    <color name="glow_blue">#405B8FD4</color>
+    <color name="ai_active">#FF7EB8FF</color>
+    <color name="ai_listening">#FF5BAE7C</color>
+
+    <!-- ── Card icon tints ── -->
+    <color name="icon_asl">#FFD4836B</color>
+    <color name="icon_color">#FF5BAE7C</color>
+    <color name="icon_nav">#FF5B8FD4</color>
+    <color name="icon_ocr">#FFE8A838</color>
 </resources>

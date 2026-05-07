@@ -3,6 +3,8 @@ package com.example.gabai
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -38,7 +40,7 @@ class AslActivity : AppCompatActivity() {
         tts = TtsService(this, Locale.US)
         haptics = Haptics(this)
 
-        val tvStatus = findViewById<android.widget.TextView>(R.id.tv_asl_status)
+        val tvStatus = findViewById<TextView>(R.id.tv_asl_status)
 
         module = AslModule(this, tts).apply {
             onStatusText = { text ->
@@ -46,10 +48,20 @@ class AslActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<android.widget.Button>(R.id.btn_asl_back).setOnClickListener {
+        // Back button is now an ImageView
+        findViewById<ImageView>(R.id.btn_asl_back).setOnClickListener {
             haptics.click()
             tts.speak("Back")
             finish()
+        }
+
+        // Speak button
+        findViewById<android.widget.Button>(R.id.btn_asl_speak).setOnClickListener {
+            haptics.click()
+            val phrase = tvStatus.text?.toString().orEmpty()
+            if (phrase.isNotBlank()) {
+                tts.speak(phrase)
+            }
         }
     }
 
@@ -85,4 +97,3 @@ class AslActivity : AppCompatActivity() {
         module.start()
     }
 }
-

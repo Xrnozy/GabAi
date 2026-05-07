@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,6 +14,7 @@ import androidx.core.content.ContextCompat
 import com.example.gabai.services.Haptics
 import com.example.gabai.services.TtsService
 import com.example.gabai.services.VoiceCommandService
+import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 
@@ -44,13 +47,18 @@ class MainActivity : AppCompatActivity() {
         tts = TtsService(this, Locale.US)
         haptics = Haptics(this)
 
-        val btnNavigation = findViewById<android.widget.Button>(R.id.btn_navigation)
-        val btnAsl = findViewById<android.widget.Button>(R.id.btn_asl)
-        val btnOcr = findViewById<android.widget.Button>(R.id.btn_ocr)
-        val btnColor = findViewById<android.widget.Button>(R.id.btn_color)
+        // Bind cards (now LinearLayouts instead of Buttons)
+        val btnNavigation = findViewById<LinearLayout>(R.id.btn_navigation)
+        val btnAsl = findViewById<LinearLayout>(R.id.btn_asl)
+        val btnOcr = findViewById<LinearLayout>(R.id.btn_ocr)
+        val btnColor = findViewById<LinearLayout>(R.id.btn_color)
+
+        // Set dynamic greeting based on time of day
+        val tvTitle = findViewById<TextView>(R.id.tv_title)
+        tvTitle.text = getGreeting()
 
         // Ensure TalkBack focuses the primary actions early.
-        ViewCompat.setAccessibilityHeading(findViewById(R.id.tv_title), true)
+        ViewCompat.setAccessibilityHeading(tvTitle, true)
         btnNavigation.requestFocus()
 
         val speakButtonNameOnFocus: (android.view.View, Boolean, String) -> Unit =
@@ -133,6 +141,9 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         openingMode.set(null)
 
+        // Update greeting on resume (time may have changed)
+        findViewById<TextView>(R.id.tv_title).text = getGreeting()
+
         // Immediate voice guidance (blind-friendly).
         tts.speak("Welcome. Say Navigation, A S L, O C R, or Color.")
 
@@ -142,6 +153,15 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         voiceCommands.stop()
+    }
+
+    private fun getGreeting(): String {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when {
+            hour < 12 -> "Good morning"
+            hour < 17 -> "Good afternoon"
+            else -> "Good evening"
+        }
     }
 
     private fun ensureMicPermissionAndStartListening() {
@@ -254,4 +274,4 @@ class MainActivity : AppCompatActivity() {
         voiceCommands.destroy()
         tts.shutdown()
     }
-} 
+}

@@ -1,3 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GabAi</string>
+
+    <!-- ── Dashboard ── -->
+    <string name="dashboard_greeting">Good morning</string>
+    <string name="dashboard_subtitle">How can I help you today?</string>
+    <string name="dashboard_ai_status">AI Assistant Active</string>
+    <string name="dashboard_ai_listening">Listening…</string>
+    <string name="dashboard_voice_hint">Say a command or tap a card</string>
+
+    <!-- Dashboard cards -->
+    <string name="card_asl_title">ASL Detection</string>
+    <string name="card_asl_desc">Translate sign language in real time</string>
+    <string name="card_color_title">Color Detection</string>
+    <string name="card_color_desc">Identify colors around you</string>
+    <string name="card_nav_title">Smart Navigation</string>
+    <string name="card_nav_desc">Voice-guided safe pathfinding</string>
+    <string name="card_ocr_title">OCR Reader</string>
+    <string name="card_ocr_desc">Scan and read text aloud</string>
+
+    <!-- ── ASL Detection Page ── -->
+    <string name="asl_title">ASL Detection</string>
+    <string name="asl_camera_label">Live camera preview</string>
+    <string name="asl_status_ready">Point the camera at a signer…</string>
+    <string name="asl_detected_label">Detected Phrase</string>
+    <string name="asl_no_detection">Waiting for gesture…</string>
+    <string name="asl_confidence">Confidence</string>
+    <string name="asl_speak_btn">Speak Phrase</string>
+    <string name="asl_scanning">AI Scanning…</string>
+
+    <!-- ── Color Detection Page ── -->
+    <string name="color_title">Color Detection</string>
+    <string name="color_status_ready">Point the camera at an object…</string>
+    <string name="color_detected_label">Detected Color</string>
+    <string name="color_no_detection">Analyzing…</string>
+    <string name="color_announce_btn">Announce Color</string>
+    <string name="color_history_label">Recent Colors</string>
+    <string name="color_confidence">Confidence</string>
+
+    <!-- ── Smart Navigation Page ── -->
+    <string name="nav_title">Smart Navigation</string>
+    <string name="nav_status_ready">Starting navigation…</string>
+    <string name="nav_search_hint">Where do you want to go?</string>
+    <string name="nav_listening">Listening for directions…</string>
+    <string name="nav_guidance_label">Voice Guidance</string>
+    <string name="nav_obstacle_alert">Obstacle Detected</string>
+    <string name="nav_route_info">Route Information</string>
+    <string name="nav_safe_path">Following safe path</string>
+    <string name="nav_direction_ahead">Continue ahead</string>
+
+    <!-- ── OCR Reader Page ── -->
+    <string name="ocr_title">OCR Reader</string>
+    <string name="ocr_status_ready">Point the camera at text…</string>
+    <string name="ocr_extracted_label">Extracted Text</string>
+    <string name="ocr_no_text">No text detected yet</string>
+    <string name="ocr_read_aloud">Read Aloud</string>
+    <string name="ocr_translate">Translate</string>
+    <string name="ocr_save">Save Text</string>
+    <string name="ocr_scanning">Scanning…</string>
+
+    <!-- ── Common ── -->
+    <string name="btn_back">Back</string>
+    <string name="btn_back_desc">Go back to dashboard</string>
+    <string name="mic_desc">Microphone — tap to speak</string>
+    <string name="ai_powered">Powered by AI</string>
 </resources>

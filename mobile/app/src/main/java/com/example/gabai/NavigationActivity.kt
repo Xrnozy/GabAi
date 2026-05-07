@@ -3,6 +3,7 @@ package com.example.gabai
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +39,10 @@ class NavigationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)
 
+        // Navigation page uses dark theme — set status bar color
+        window.statusBarColor = getColor(R.color.surface_dark)
+        window.navigationBarColor = getColor(R.color.surface_dark)
+
         tvStatus = findViewById(R.id.tv_nav_status)
 
         tts = TtsService(this, Locale.US)
@@ -49,7 +54,8 @@ class NavigationActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<android.widget.Button>(R.id.btn_nav_back).setOnClickListener {
+        // Back button is now an ImageView
+        findViewById<ImageView>(R.id.btn_nav_back).setOnClickListener {
             haptics.click()
             tts.speak("Back")
             finish()
@@ -85,8 +91,7 @@ class NavigationActivity : AppCompatActivity() {
     }
 
     private fun startNavigation() {
-        tvStatus.text = "Starting..."
+        tvStatus.text = getString(R.string.nav_status_ready)
         module.start()
     }
 }
-

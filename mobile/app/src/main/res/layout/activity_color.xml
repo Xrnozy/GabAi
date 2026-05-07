@@ -1,63 +1,284 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/canvas">
+    android:background="@color/canvas"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
-    <TextView
-        android:id="@+id/tv_color_title"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="32dp"
-        android:text="Color"
-        android:textColor="@color/ink"
-        android:textSize="36sp"
-        android:textStyle="normal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/space_3xl">
 
-    <TextView
-        android:id="@+id/tv_color_status"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp"
-        android:background="@color/surface_dark"
-        android:padding="20dp"
-        android:importantForAccessibility="yes"
-        android:text="Point the camera at a color…"
-        android:textColor="@color/on_dark"
-        android:textSize="28sp"
-        app:layout_constraintBottom_toTopOf="@id/btn_color_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_color_title" />
+        <!-- ════════ TOP BAR ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/space_lg"
+            android:paddingEnd="@dimen/page_margin"
+            android:paddingTop="@dimen/space_5xl"
+            android:paddingBottom="@dimen/space_lg">
 
-    <Button
-        android:id="@+id/btn_color_back"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_button_primary"
-        android:minHeight="96dp"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:text="Back"
-        android:textAllCaps="false"
-        android:textColor="@color/on_primary"
-        android:textSize="24sp"
-        android:contentDescription="Back"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+            <ImageView
+                android:id="@+id/btn_color_back"
+                android:layout_width="@dimen/touch_comfortable"
+                android:layout_height="@dimen/touch_comfortable"
+                android:padding="@dimen/space_lg"
+                android:src="@drawable/ic_back_arrow"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/btn_back_desc"
+                android:importantForAccessibility="yes"
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/tv_color_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_sm"
+                android:text="@string/color_title"
+                android:textColor="@color/ink"
+                android:textSize="@dimen/text_title"
+                android:fontFamily="serif"
+                android:importantForAccessibility="yes" />
+        </LinearLayout>
 
+        <!-- ════════ CAMERA PREVIEW ════════ -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/camera_preview_height"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:background="@drawable/bg_camera_frame"
+            android:clipChildren="true"
+            android:clipToPadding="true">
+
+            <!-- Camera SurfaceView inserted at runtime -->
+            <View
+                android:id="@+id/camera_preview_color"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- Center crosshair target -->
+            <View
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_detection_overlay" />
+
+            <!-- Scanning strip -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_gravity="bottom"
+                android:background="@color/glow_coral" />
+        </FrameLayout>
+
+        <!-- ════════ DETECTED COLOR CARD ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_xl"
+            android:background="@drawable/bg_card_cream"
+            android:elevation="@dimen/elevation_card"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="@dimen/space_xl">
+
+            <!-- Color Swatch -->
+            <View
+                android:id="@+id/view_color_swatch"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/bg_confidence_fill" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_xl"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/color_detected_label"
+                    android:textColor="@color/muted"
+                    android:textSize="@dimen/text_small"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.06" />
+
+                <TextView
+                    android:id="@+id/tv_color_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_xs"
+                    android:text="@string/color_no_detection"
+                    android:textColor="@color/ink"
+                    android:textSize="@dimen/text_headline"
+                    android:fontFamily="serif"
+                    android:importantForAccessibility="yes"
+                    android:lineSpacingMultiplier="1.2" />
+
+                <!-- Confidence -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_sm"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/color_confidence"
+                        android:textColor="@color/muted"
+                        android:textSize="@dimen/text_caption" />
+
+                    <TextView
+                        android:id="@+id/tv_color_confidence"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="@color/primary"
+                        android:textSize="@dimen/text_caption"
+                        android:fontFamily="sans-serif-medium" />
+                </LinearLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/confidence_bar_height"
+                    android:layout_marginTop="@dimen/space_sm">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_confidence_bar" />
+
+                    <View
+                        android:id="@+id/confidence_fill_color"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_confidence_fill" />
+                </FrameLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ════════ ANNOUNCE COLOR BUTTON ════════ -->
+        <Button
+            android:id="@+id/btn_color_announce"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/touch_comfortable"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_xl"
+            android:background="@drawable/bg_button_primary"
+            android:drawableStart="@drawable/ic_volume"
+            android:drawablePadding="@dimen/space_md"
+            android:gravity="center"
+            android:paddingStart="@dimen/space_2xl"
+            android:paddingEnd="@dimen/space_2xl"
+            android:text="@string/color_announce_btn"
+            android:textAllCaps="false"
+            android:textColor="@color/on_primary"
+            android:textSize="@dimen/text_body"
+            android:fontFamily="sans-serif-medium"
+            android:contentDescription="@string/color_announce_btn"
+            android:importantForAccessibility="yes" />
+
+        <!-- ════════ RECENT COLORS HISTORY ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_2xl"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/color_history_label"
+                android:textColor="@color/muted"
+                android:textSize="@dimen/text_small"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                android:scrollbars="none"
+                android:overScrollMode="never">
+
+                <LinearLayout
+                    android:id="@+id/layout_color_history"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <!-- Color history items added at runtime -->
+                    <View
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="@dimen/space_sm"
+                        android:background="@drawable/bg_history_item" />
+
+                    <View
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="@dimen/space_sm"
+                        android:background="@drawable/bg_history_item" />
+
+                    <View
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="@dimen/space_sm"
+                        android:background="@drawable/bg_history_item" />
+                </LinearLayout>
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <!-- ════════ SENTENCE OUTPUT DARK CARD ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_xl"
+            android:background="@drawable/bg_card_dark"
+            android:elevation="@dimen/elevation_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/space_xl">
+
+            <ImageView
+                android:layout_width="@dimen/icon_md"
+                android:layout_height="@dimen/icon_md"
+                android:src="@drawable/ic_ai_wave"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/tv_color_sentence"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_md"
+                android:text="@string/color_status_ready"
+                android:textColor="@color/on_dark"
+                android:textSize="@dimen/text_body_lg"
+                android:fontFamily="sans-serif"
+                android:lineSpacingMultiplier="1.4" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

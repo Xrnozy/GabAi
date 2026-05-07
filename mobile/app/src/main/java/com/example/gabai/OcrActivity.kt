@@ -3,6 +3,8 @@ package com.example.gabai
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -38,7 +40,7 @@ class OcrActivity : AppCompatActivity() {
         tts = TtsService(this, Locale.US)
         haptics = Haptics(this)
 
-        val tvStatus = findViewById<android.widget.TextView>(R.id.tv_ocr_status)
+        val tvStatus = findViewById<TextView>(R.id.tv_ocr_status)
 
         module = OcrModule(this, tts).apply {
             onStatusText = { text ->
@@ -46,10 +48,33 @@ class OcrActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<android.widget.Button>(R.id.btn_ocr_back).setOnClickListener {
+        // Back button is now an ImageView
+        findViewById<ImageView>(R.id.btn_ocr_back).setOnClickListener {
             haptics.click()
             tts.speak("Back")
             finish()
+        }
+
+        // Read Aloud button
+        findViewById<android.widget.Button>(R.id.btn_ocr_read).setOnClickListener {
+            haptics.click()
+            val text = tvStatus.text?.toString().orEmpty()
+            if (text.isNotBlank()) {
+                tts.speak(text)
+            }
+        }
+
+        // Translate button (placeholder — speaks the text for now)
+        findViewById<android.widget.Button>(R.id.btn_ocr_translate).setOnClickListener {
+            haptics.click()
+            tts.speak("Translate feature coming soon")
+        }
+
+        // Save button (placeholder — confirms save)
+        findViewById<android.widget.Button>(R.id.btn_ocr_save).setOnClickListener {
+            haptics.click()
+            tts.speak("Text saved")
+            Toast.makeText(this, "Text saved", Toast.LENGTH_SHORT).show()
         }
     }
 

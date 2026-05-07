@@ -3,6 +3,8 @@ package com.example.gabai
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -38,7 +40,7 @@ class ColorActivity : AppCompatActivity() {
         tts = TtsService(this, Locale.US)
         haptics = Haptics(this)
 
-        val tvStatus = findViewById<android.widget.TextView>(R.id.tv_color_status)
+        val tvStatus = findViewById<TextView>(R.id.tv_color_status)
 
         module = ColorModule(this, tts).apply {
             onStatusText = { text ->
@@ -46,10 +48,20 @@ class ColorActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<android.widget.Button>(R.id.btn_color_back).setOnClickListener {
+        // Back button is now an ImageView
+        findViewById<ImageView>(R.id.btn_color_back).setOnClickListener {
             haptics.click()
             tts.speak("Back")
             finish()
+        }
+
+        // Announce color button
+        findViewById<android.widget.Button>(R.id.btn_color_announce).setOnClickListener {
+            haptics.click()
+            val color = tvStatus.text?.toString().orEmpty()
+            if (color.isNotBlank()) {
+                tts.speak(color)
+            }
         }
     }
 
@@ -85,4 +97,3 @@ class ColorActivity : AppCompatActivity() {
         module.start()
     }
 }
-

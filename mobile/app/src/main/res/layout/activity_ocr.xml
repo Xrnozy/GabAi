@@ -1,57 +1,246 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/canvas">
+    android:background="@color/canvas"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
-    <TextView
-        android:id="@+id/tv_ocr_title"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="24dp"
-        android:text="OCR mode"
-        android:textColor="@color/ink"
-        android:textSize="36sp"
-        android:textStyle="normal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/space_3xl">
 
-    <TextView
-        android:id="@+id/tv_ocr_status"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:background="@color/surface_dark"
-        android:padding="20dp"
-        android:text="Waiting for text..."
-        android:textColor="@color/on_dark"
-        android:textSize="28sp"
-        app:layout_constraintBottom_toTopOf="@id/btn_ocr_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_ocr_title" />
+        <!-- ════════ TOP BAR ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/space_lg"
+            android:paddingEnd="@dimen/page_margin"
+            android:paddingTop="@dimen/space_5xl"
+            android:paddingBottom="@dimen/space_lg">
 
-    <Button
-        android:id="@+id/btn_ocr_back"
-        android:layout_width="0dp"
-        android:layout_height="72dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_button_primary"
-        android:text="Back"
-        android:textAllCaps="false"
-        android:textColor="@color/on_primary"
-        android:textSize="28sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+            <ImageView
+                android:id="@+id/btn_ocr_back"
+                android:layout_width="@dimen/touch_comfortable"
+                android:layout_height="@dimen/touch_comfortable"
+                android:padding="@dimen/space_lg"
+                android:src="@drawable/ic_back_arrow"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/btn_back_desc"
+                android:importantForAccessibility="yes"
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/tv_ocr_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_sm"
+                android:text="@string/ocr_title"
+                android:textColor="@color/ink"
+                android:textSize="@dimen/text_title"
+                android:fontFamily="serif"
+                android:importantForAccessibility="yes" />
+
+            <!-- Scanning Indicator -->
+            <TextView
+                android:id="@+id/tv_ocr_scanning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_pill"
+                android:text="@string/ocr_scanning"
+                android:textColor="@color/primary"
+                android:textSize="@dimen/text_small"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+
+        <!-- ════════ CAMERA SCANNER ════════ -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="240dp"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:background="@drawable/bg_camera_frame"
+            android:clipChildren="true"
+            android:clipToPadding="true">
+
+            <!-- Camera SurfaceView inserted at runtime -->
+            <View
+                android:id="@+id/camera_preview_ocr"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- Detection bounding box -->
+            <View
+                android:id="@+id/detection_overlay_ocr"
+                android:layout_width="200dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_detection_overlay"
+                android:visibility="invisible" />
+
+            <!-- Scanning strip -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_gravity="bottom"
+                android:background="@color/glow_coral" />
+        </FrameLayout>
+
+        <!-- ════════ EXTRACTED TEXT PANEL ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_xl"
+            android:background="@drawable/bg_card_cream"
+            android:elevation="@dimen/elevation_card"
+            android:orientation="vertical"
+            android:padding="@dimen/space_xl"
+            android:minHeight="160dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ocr_extracted_label"
+                android:textColor="@color/muted"
+                android:textSize="@dimen/text_small"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                android:maxHeight="200dp"
+                android:scrollbars="vertical"
+                android:fadeScrollbars="true">
+
+                <TextView
+                    android:id="@+id/tv_ocr_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ocr_no_text"
+                    android:textColor="@color/ink"
+                    android:textSize="@dimen/text_body_lg"
+                    android:fontFamily="serif"
+                    android:importantForAccessibility="yes"
+                    android:lineSpacingMultiplier="1.6" />
+            </ScrollView>
+        </LinearLayout>
+
+        <!-- ════════ ACTION BUTTONS ════════ -->
+
+        <!-- Read Aloud (Primary) -->
+        <Button
+            android:id="@+id/btn_ocr_read"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/touch_comfortable"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_xl"
+            android:background="@drawable/bg_button_primary"
+            android:drawableStart="@drawable/ic_volume"
+            android:drawablePadding="@dimen/space_md"
+            android:gravity="center"
+            android:paddingStart="@dimen/space_2xl"
+            android:paddingEnd="@dimen/space_2xl"
+            android:text="@string/ocr_read_aloud"
+            android:textAllCaps="false"
+            android:textColor="@color/on_primary"
+            android:textSize="@dimen/text_body"
+            android:fontFamily="sans-serif-medium"
+            android:contentDescription="@string/ocr_read_aloud"
+            android:importantForAccessibility="yes" />
+
+        <!-- Translate + Save Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_md"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_ocr_translate"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/touch_comfortable"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/space_sm"
+                android:background="@drawable/bg_button_secondary"
+                android:drawableStart="@drawable/ic_translate"
+                android:drawablePadding="@dimen/space_sm"
+                android:gravity="center"
+                android:paddingStart="@dimen/space_lg"
+                android:paddingEnd="@dimen/space_lg"
+                android:text="@string/ocr_translate"
+                android:textAllCaps="false"
+                android:textColor="@color/ink"
+                android:textSize="@dimen/text_caption"
+                android:fontFamily="sans-serif-medium"
+                android:contentDescription="@string/ocr_translate"
+                android:importantForAccessibility="yes" />
+
+            <Button
+                android:id="@+id/btn_ocr_save"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/touch_comfortable"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_sm"
+                android:background="@drawable/bg_button_secondary"
+                android:drawableStart="@drawable/ic_save"
+                android:drawablePadding="@dimen/space_sm"
+                android:gravity="center"
+                android:paddingStart="@dimen/space_lg"
+                android:paddingEnd="@dimen/space_lg"
+                android:text="@string/ocr_save"
+                android:textAllCaps="false"
+                android:textColor="@color/ink"
+                android:textSize="@dimen/text_caption"
+                android:fontFamily="sans-serif-medium"
+                android:contentDescription="@string/ocr_save"
+                android:importantForAccessibility="yes" />
+        </LinearLayout>
+
+        <!-- ════════ AI STATUS DARK CARD ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_xl"
+            android:background="@drawable/bg_card_dark"
+            android:elevation="@dimen/elevation_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/space_xl">
+
+            <ImageView
+                android:layout_width="@dimen/icon_md"
+                android:layout_height="@dimen/icon_md"
+                android:src="@drawable/ic_ai_wave"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/tv_ocr_ai_status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_md"
+                android:text="@string/ocr_status_ready"
+                android:textColor="@color/on_dark"
+                android:textSize="@dimen/text_body"
+                android:fontFamily="sans-serif"
+                android:lineSpacingMultiplier="1.4" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

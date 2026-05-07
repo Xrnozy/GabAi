@@ -1,63 +1,270 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/canvas">
+    android:background="@drawable/bg_nav_dark_surface">
 
-    <TextView
-        android:id="@+id/tv_nav_title"
-        android:layout_width="0dp"
+    <!-- ════════ FULL-SCREEN NAVIGATION MAP AREA ════════ -->
+    <View
+        android:id="@+id/nav_map_area"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/surface_dark" />
+
+    <!-- ════════ TOP CONTROLS OVERLAY ════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="32dp"
-        android:text="Navigation"
-        android:textColor="@color/ink"
-        android:textSize="36sp"
-        android:textStyle="normal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        android:paddingTop="@dimen/space_5xl"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin">
 
-    <TextView
-        android:id="@+id/tv_nav_status"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp"
-        android:background="@color/surface_dark"
-        android:padding="20dp"
-        android:importantForAccessibility="yes"
-        android:text="Starting…"
-        android:textColor="@color/on_dark"
-        android:textSize="28sp"
-        app:layout_constraintBottom_toTopOf="@id/btn_nav_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_nav_title" />
+        <!-- Back + Title Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-    <Button
-        android:id="@+id/btn_nav_back"
-        android:layout_width="0dp"
+            <ImageView
+                android:id="@+id/btn_nav_back"
+                android:layout_width="@dimen/touch_comfortable"
+                android:layout_height="@dimen/touch_comfortable"
+                android:padding="@dimen/space_lg"
+                android:src="@drawable/ic_back_arrow"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/btn_back_desc"
+                android:importantForAccessibility="yes"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="@color/on_dark" />
+
+            <TextView
+                android:id="@+id/tv_nav_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_sm"
+                android:text="@string/nav_title"
+                android:textColor="@color/on_dark"
+                android:textSize="@dimen/text_title"
+                android:fontFamily="serif"
+                android:importantForAccessibility="yes" />
+
+            <!-- AI Listening indicator -->
+            <LinearLayout
+                android:id="@+id/nav_listening_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_pill"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_ai_wave"
+                    android:importantForAccessibility="no" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="Live"
+                    android:textColor="@color/primary"
+                    android:textSize="@dimen/text_small"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ════════ SEARCH BAR ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/touch_comfortable"
+            android:layout_marginTop="@dimen/space_lg"
+            android:background="@drawable/bg_card_dark"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/space_xl"
+            android:paddingEnd="@dimen/space_xl">
+
+            <ImageView
+                android:layout_width="@dimen/icon_md"
+                android:layout_height="@dimen/icon_md"
+                android:src="@drawable/ic_search"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/tv_nav_search"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_md"
+                android:text="@string/nav_search_hint"
+                android:textColor="@color/on_dark_muted"
+                android:textSize="@dimen/text_body"
+                android:fontFamily="sans-serif" />
+        </LinearLayout>
+
+        <!-- ════════ OBSTACLE ALERT BANNER ════════ -->
+        <LinearLayout
+            android:id="@+id/nav_obstacle_alert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_lg"
+            android:background="@drawable/bg_alert_banner"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/space_lg"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="@dimen/icon_md"
+                android:layout_height="@dimen/icon_md"
+                android:src="@drawable/ic_obstacle"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/tv_nav_alert_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_md"
+                android:text="@string/nav_obstacle_alert"
+                android:textColor="@color/status_error"
+                android:textSize="@dimen/text_body"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ════════ DIRECTION ARROW CENTER ════════ -->
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_button_primary"
-        android:minHeight="96dp"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:text="Back"
-        android:textAllCaps="false"
-        android:textColor="@color/on_primary"
-        android:textSize="24sp"
-        android:contentDescription="Back"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <ImageView
+            android:id="@+id/iv_direction_arrow"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_direction_arrow"
+            android:contentDescription="@string/nav_direction_ahead"
+            android:importantForAccessibility="yes" />
 
+        <TextView
+            android:id="@+id/tv_nav_direction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_md"
+            android:text="@string/nav_direction_ahead"
+            android:textColor="@color/ai_active"
+            android:textSize="@dimen/text_body_lg"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+
+    <!-- ════════ BOTTOM ROUTE CARD ════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+
+        <!-- Voice guidance panel -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_bottom_sheet"
+            android:elevation="@dimen/elevation_sheet"
+            android:orientation="vertical"
+            android:padding="@dimen/space_2xl">
+
+            <!-- Handle bar -->
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/bg_confidence_bar" />
+
+            <!-- Voice guidance label -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xl"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/icon_md"
+                    android:layout_height="@dimen/icon_md"
+                    android:src="@drawable/ic_ai_wave"
+                    android:importantForAccessibility="no" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_sm"
+                    android:text="@string/nav_guidance_label"
+                    android:textColor="@color/muted"
+                    android:textSize="@dimen/text_small"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.06" />
+            </LinearLayout>
+
+            <!-- Navigation status / instructions -->
+            <TextView
+                android:id="@+id/tv_nav_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                android:text="@string/nav_status_ready"
+                android:textColor="@color/ink"
+                android:textSize="@dimen/text_headline"
+                android:fontFamily="serif"
+                android:importantForAccessibility="yes"
+                android:lineSpacingMultiplier="1.3"
+                android:minHeight="@dimen/touch_large" />
+
+            <!-- Route info row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_lg"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tv_nav_safe_path"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_status_pill"
+                    android:text="@string/nav_safe_path"
+                    android:textColor="@color/status_success"
+                    android:textSize="@dimen/text_small"
+                    android:fontFamily="sans-serif-medium" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tv_nav_route_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nav_route_info"
+                    android:textColor="@color/muted"
+                    android:textSize="@dimen/text_caption"
+                    android:fontFamily="sans-serif" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

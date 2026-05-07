@@ -1,63 +1,239 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/canvas">
+    android:background="@color/canvas"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
-    <TextView
-        android:id="@+id/tv_asl_title"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="32dp"
-        android:text="ASL"
-        android:textColor="@color/ink"
-        android:textSize="36sp"
-        android:textStyle="normal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tv_asl_status"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp"
-        android:background="@color/surface_dark"
-        android:padding="20dp"
-        android:importantForAccessibility="yes"
-        android:text="ASL mode ready."
-        android:textColor="@color/on_dark"
-        android:textSize="28sp"
-        app:layout_constraintBottom_toTopOf="@id/btn_asl_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_asl_title" />
+        <!-- ════════ TOP BAR ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/space_lg"
+            android:paddingEnd="@dimen/page_margin"
+            android:paddingTop="@dimen/space_5xl"
+            android:paddingBottom="@dimen/space_lg">
 
-    <Button
-        android:id="@+id/btn_asl_back"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_button_primary"
-        android:minHeight="96dp"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:text="Back"
-        android:textAllCaps="false"
-        android:textColor="@color/on_primary"
-        android:textSize="24sp"
-        android:contentDescription="Back"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+            <ImageView
+                android:id="@+id/btn_asl_back"
+                android:layout_width="@dimen/touch_comfortable"
+                android:layout_height="@dimen/touch_comfortable"
+                android:padding="@dimen/space_lg"
+                android:src="@drawable/ic_back_arrow"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/btn_back_desc"
+                android:importantForAccessibility="yes"
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/tv_asl_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_sm"
+                android:text="@string/asl_title"
+                android:textColor="@color/ink"
+                android:textSize="@dimen/text_title"
+                android:fontFamily="serif"
+                android:importantForAccessibility="yes" />
 
+            <!-- AI Scanning Indicator -->
+            <TextView
+                android:id="@+id/tv_asl_scanning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_pill"
+                android:text="@string/asl_scanning"
+                android:textColor="@color/primary"
+                android:textSize="@dimen/text_small"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+
+        <!-- ════════ CAMERA PREVIEW ════════ -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/camera_preview_height"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:background="@drawable/bg_camera_frame"
+            android:clipChildren="true"
+            android:clipToPadding="true"
+            android:contentDescription="@string/asl_camera_label">
+
+            <!-- Camera SurfaceView would go here at runtime -->
+            <View
+                android:id="@+id/camera_preview_asl"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- Detection overlay bounding box -->
+            <View
+                android:id="@+id/detection_overlay_asl"
+                android:layout_width="160dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_detection_overlay"
+                android:visibility="invisible" />
+
+            <!-- AI Scanning strip at bottom of camera -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_gravity="bottom"
+                android:background="@color/glow_coral" />
+        </FrameLayout>
+
+        <!-- ════════ DETECTED PHRASE CONTAINER ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_xl"
+            android:background="@drawable/bg_card_cream"
+            android:elevation="@dimen/elevation_card"
+            android:orientation="vertical"
+            android:padding="@dimen/space_xl">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/asl_detected_label"
+                android:textColor="@color/muted"
+                android:textSize="@dimen/text_small"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+
+            <TextView
+                android:id="@+id/tv_asl_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:text="@string/asl_no_detection"
+                android:textColor="@color/ink"
+                android:textSize="@dimen/text_headline"
+                android:fontFamily="serif"
+                android:importantForAccessibility="yes"
+                android:lineSpacingMultiplier="1.3"
+                android:minHeight="@dimen/touch_large" />
+        </LinearLayout>
+
+        <!-- ════════ CONFIDENCE BAR ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_lg"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/asl_confidence"
+                    android:textColor="@color/muted"
+                    android:textSize="@dimen/text_caption"
+                    android:fontFamily="sans-serif" />
+
+                <TextView
+                    android:id="@+id/tv_asl_confidence_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textColor="@color/primary"
+                    android:textSize="@dimen/text_caption"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/confidence_bar_height"
+                android:layout_marginTop="@dimen/space_sm">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_confidence_bar" />
+
+                <View
+                    android:id="@+id/confidence_fill_asl"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_confidence_fill" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- ════════ VOICE PLAYBACK BUTTON ════════ -->
+        <Button
+            android:id="@+id/btn_asl_speak"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/touch_comfortable"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_xl"
+            android:background="@drawable/bg_button_primary"
+            android:drawableStart="@drawable/ic_volume"
+            android:drawablePadding="@dimen/space_md"
+            android:gravity="center"
+            android:paddingStart="@dimen/space_2xl"
+            android:paddingEnd="@dimen/space_2xl"
+            android:text="@string/asl_speak_btn"
+            android:textAllCaps="false"
+            android:textColor="@color/on_primary"
+            android:textSize="@dimen/text_body"
+            android:fontFamily="sans-serif-medium"
+            android:contentDescription="@string/asl_speak_btn"
+            android:importantForAccessibility="yes" />
+
+        <!-- ════════ REAL-TIME SUBTITLE TICKER ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:layout_marginTop="@dimen/space_xl"
+            android:layout_marginBottom="@dimen/space_3xl"
+            android:background="@drawable/bg_card_dark"
+            android:elevation="@dimen/elevation_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/space_xl">
+
+            <ImageView
+                android:layout_width="@dimen/icon_md"
+                android:layout_height="@dimen/icon_md"
+                android:src="@drawable/ic_ai_wave"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/tv_asl_subtitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_md"
+                android:text="@string/asl_status_ready"
+                android:textColor="@color/on_dark"
+                android:textSize="@dimen/text_body"
+                android:fontFamily="sans-serif"
+                android:lineSpacingMultiplier="1.4" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
