@@ -1,0 +1,14 @@
+aiohttp
+aiortc
+# NOTE: asyncio is part of Python stdlib; do NOT install PyPI "asyncio"
+# to avoid dependency conflicts and runtime weirdness.
+
+# OCR deps
+addict==2.4.0
+easyocr==1.7.2
+pillow
+pytesseract
+
+# EasyOCR pulls numpy; pin to keep compatibility with common stacks on Windows.
+# (e.g., numba requires numpy < 2.4)
+numpy>=1.26,<2.4

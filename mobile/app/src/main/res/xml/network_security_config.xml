@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic to specific IP for development/LAN use -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Allow HTTP to server IP on LAN -->
+        <domain includeSubdomains="true">100.118.48.12</domain>
+        <domain includeSubdomains="true">100.91.165.27</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">100.124.181.67</domain>
+    </domain-config>
+    
+    <!-- For other domains, enforce HTTPS -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">example.com</domain>
+    </domain-config>
+</network-security-config>

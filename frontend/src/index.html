@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>GabAi — Directional Safety Field</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GabAi real-time vision-based navigation assistant with directional safety field">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --canvas: #faf9f5;
+            --surface-card: #efe9de;
+            --surface-soft: #f5f0e8;
+            --surface-dark: #181715;
+            --surface-dark-elevated: #252320;
+            --surface-dark-soft: #1f1e1b;
+            --primary: #cc785c;
+            --primary-active: #a9583e;
+            --ink: #141413;
+            --body: #3d3d3a;
+            --muted: #6c6a64;
+            --muted-soft: #8e8b82;
+            --on-dark: #faf9f5;
+            --on-dark-soft: #a09d96;
+            --on-primary: #ffffff;
+            --hairline: #e6dfd8;
+            --success: #5db872;
+            --warning: #d4a017;
+            --error: #c64545;
+            --accent-teal: #5db8a6;
+            --font-display: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --rounded-md: 8px;
+            --rounded-lg: 12px;
+            --rounded-xl: 16px;
+            --rounded-pill: 9999px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--canvas);
+            color: var(--body);
+            min-height: 100vh;
+            font-size: 16px;
+            line-height: 1.55;
+        }
+
+        /* ── Top Nav ─────────────────────────────────── */
+        .top-nav {
+            background: var(--canvas);
+            border-bottom: 1px solid var(--hairline);
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .top-nav-brand .spike { font-size: 20px; color: var(--ink); }
+        .top-nav-brand h1 {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            color: var(--ink);
+        }
+        .top-nav-brand h1 span { color: var(--primary); }
+        .top-nav-status {
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .top-nav-status .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--muted-soft);
+            transition: background 0.3s;
+        }
+        .top-nav-status .dot.live { background: var(--success); }
+        .top-nav-status .dot.error { background: var(--error); }
+        #reconnect-btn {
+            padding: 8px 20px;
+            background: var(--primary);
+            color: var(--on-primary);
+            border: none;
+            border-radius: var(--rounded-md);
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: none;
+            transition: background 0.2s;
+        }
+        #reconnect-btn:active { background: var(--primary-active); }
+
+        /* ── Hero Band: Navigation + Live Feed ──────── */
+        .hero-band {
+            padding: 48px 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* ── Navigation Panel (cream card) ──────────── */
+        .navigation-panel {
+            background: var(--surface-card);
+            border-radius: var(--rounded-lg);
+            padding: 32px;
+        }
+        .nav-title {
+            font-family: var(--font-body);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+        }
+        .nav-primary {
+            font-family: var(--font-display);
+            font-size: 36px;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            color: var(--ink);
+            line-height: 1.15;
+            margin-bottom: 8px;
+            transition: color 0.3s;
+        }
+        .nav-secondary {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.55;
+            margin-bottom: 16px;
+        }
+
+        /* Directional field bars */
+        .directional-field {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+            background: var(--surface-dark);
+            border-radius: var(--rounded-lg);
+            margin-bottom: 16px;
+        }
+        .dir-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 52px;
+            transition: transform 0.3s ease;
+        }
+        .dir-bar-label {
+            font-size: 9px;
+            font-weight: 500;
+            color: var(--on-dark-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+        .dir-bar-fill {
+            width: 100%;
+            height: 54px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            background: var(--surface-dark-soft);
+            border: 1px solid #333;
+        }
+        .dir-bar-fill-inner {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            width: 100%;
+            transition: height 0.3s ease, background 0.3s ease;
+            border-radius: 0 0 3px 3px;
+            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+            min-height: 2px;
+        }
+        .dir-bar-value {
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 6px;
+            color: var(--on-dark-soft);
+            transition: color 0.3s ease;
+            font-family: var(--font-mono);
+        }
+        .dir-bar.recommended { 
+            transform: scale(1.12); 
+            filter: drop-shadow(0 0 6px rgba(93, 184, 166, 0.5));
+        }
+        .dir-bar.recommended .dir-bar-fill {
+            border: 2px solid var(--accent-teal);
+            box-shadow: 0 0 12px rgba(93, 184, 166, 0.4), inset 0 0 4px rgba(0, 0, 0, 0.3);
+        }
+        .dir-bar.recommended .dir-bar-label { 
+            color: var(--accent-teal); 
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+        .dir-bar.recommended .dir-bar-value {
+            color: var(--accent-teal);
+            font-weight: 600;
+        }
+        .compass-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--on-dark-soft);
+            text-align: center;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            height: 14px;
+        }
+
+        .nav-compass {
+            width: 72px; height: 72px;
+            margin: 0 8px;
+            flex-shrink: 0;
+        }
+        .nav-compass canvas { width: 72px; height: 72px; }
+
+        /* Nav stats */
+        .nav-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .nav-stat-item {
+            background: var(--canvas);
+            padding: 10px 12px;
+            border-radius: var(--rounded-md);
+            border-left: 2px solid var(--hairline);
+        }
+        .nav-stat-label {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .nav-stat-value {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink);
+            margin-top: 2px;
+        }
+        .nav-hazard {
+            background: rgba(198, 69, 69, 0.08);
+            border-left: 3px solid var(--error);
+            color: var(--error);
+            padding: 10px 14px;
+            border-radius: var(--rounded-md);
+            font-weight: 500;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        /* ── Live Feed (dark card) ──────────────────── */
+        .hero-feed {
+            background: var(--surface-dark);
+            border-radius: var(--rounded-xl);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .hero-feed .feed-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--on-dark-soft);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        /* ── Streams Section ────────────────────────── */
+        .streams-band {
+            background: var(--surface-soft);
+            padding: 48px 32px;
+        }
+        .streams-band .band-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .streams-band h2 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: -0.3px;
+            color: var(--ink);
+            margin-bottom: 24px;
+        }
+        .streams-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        /* Stream card */
+        .stream-card {
+            background: var(--canvas);
+            border-radius: var(--rounded-lg);
+            border: 1px solid var(--hairline);
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .stream-card:hover {
+            box-shadow: 0 1px 3px rgba(20,20,19,0.08);
+        }
+        .stream-card-header {
+            padding: 14px 16px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stream-card-icon {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        .stream-card-header h3 {
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink);
+        }
+        .stream-card-body { padding: 0; }
+
+        /* ── Fusion + Side cards row ────────────────── */
+        .fusion-band {
+            padding: 48px 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .fusion-band h2 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: -0.3px;
+            color: var(--ink);
+            margin-bottom: 24px;
+        }
+        .fusion-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+        }
+        .fusion-card-dark {
+            background: var(--surface-dark);
+            border-radius: var(--rounded-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .fusion-card-dark video {
+            flex-grow: 1;
+            width: 100%;
+        }
+        .fusion-card-dark .feed-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--on-dark-soft);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+        }
+        .side-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ── Video / Canvas shared ──────────────────── */
+        video, canvas.stream-canvas {
+            width: 100%;
+            border-radius: var(--rounded-md);
+            background: var(--surface-dark);
+            aspect-ratio: 16/9;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* ── Stats grids ────────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            padding: 12px 16px 14px;
+        }
+        .stat-box {
+            background: var(--surface-soft);
+            padding: 8px 10px;
+            border-radius: 6px;
+            border-left: 2px solid var(--primary);
+        }
+        .stat-label {
+            font-size: 9px;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ink);
+            margin-top: 2px;
+        }
+
+
+        /* ── Footer band (dark) ─────────────────────── */
+        .footer-band {
+            background: var(--surface-dark);
+            padding: 32px;
+            margin-top: 48px;
+        }
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-inner span {
+            font-size: 13px;
+            color: var(--on-dark-soft);
+        }
+
+        /* ICE log */
+        #ice-log {
+            background: var(--surface-dark-soft);
+            border-radius: var(--rounded-md);
+            padding: 12px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--on-dark-soft);
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        #ice-log .relay { color: var(--accent-teal); font-weight: 500; }
+        #ice-log .srflx { color: var(--primary); }
+        #ice-log .host  { color: #555; }
+
+        /* Status bar */
+        #status {
+            font-size: 13px;
+            color: var(--muted);
+            transition: color 0.3s;
+        }
+        #status.connected { color: var(--success); }
+        #status.error { color: var(--error); }
+
+        /* ── Responsive ─────────────────────────────── */
+        @media (max-width: 1024px) {
+            .hero-band { grid-template-columns: 1fr; padding: 32px 20px; }
+            .streams-grid { grid-template-columns: repeat(2, 1fr); }
+            .fusion-grid { grid-template-columns: 1fr; }
+            .nav-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .hero-band { padding: 24px 16px; gap: 20px; }
+            .streams-band { padding: 32px 16px; }
+            .streams-grid { grid-template-columns: 1fr; }
+            .fusion-band { padding: 32px 16px; }
+            .nav-primary { font-size: 28px; }
+            .nav-stats { grid-template-columns: 1fr 1fr; }
+            .top-nav { padding: 0 16px; }
+            .directional-field { gap: 4px; padding: 12px 8px; }
+            .dir-bar { width: 44px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ── Top Navigation ──────────────────────────────── -->
+    <nav class="top-nav">
+        <div class="top-nav-brand">
+            <span class="spike">✦</span>
+            <h1>Gab<span>Ai</span></h1>
+        </div>
+        <div class="top-nav-status">
+            <div class="dot" id="status-dot"></div>
+            <span id="status">Connecting to server…</span>
+            <button id="reconnect-btn" onclick="reconnect()">Reconnect</button>
+        </div>
+    </nav>
+
+    <!-- ── Hero Band: Navigation + Live Feed ────────────── -->
+    <section class="hero-band">
+        <!-- Navigation Panel (cream card) -->
+        <div id="navigation-panel" class="navigation-panel">
+            <div class="nav-title">Directional Safety Field</div>
+            <div class="nav-primary" id="nav-primary">Awaiting connection…</div>
+            <div class="nav-secondary" id="nav-secondary"></div>
+
+            <!-- Directional risk bars (dark inset) -->
+            <div class="directional-field" id="directional-field">
+                <div class="nav-compass">
+                    <canvas id="compass-canvas" width="72" height="72"></canvas>
+                    <div class="compass-label" id="compass-label">—</div>
+                </div>
+                <div class="dir-bar" id="dir-left">
+                    <div class="dir-bar-label">Left</div>
+                    <div class="dir-bar-fill"><div class="dir-bar-fill-inner" id="dir-left-fill"></div></div>
+                    <div class="dir-bar-value" id="dir-left-val">0%</div>
+                </div>
+                <div class="dir-bar" id="dir-slight-left">
+                    <div class="dir-bar-label">Slt L</div>
+                    <div class="dir-bar-fill"><div class="dir-bar-fill-inner" id="dir-slight-left-fill"></div></div>
+                    <div class="dir-bar-value" id="dir-slight-left-val">0%</div>
+                </div>
+                <div class="dir-bar" id="dir-forward">
+                    <div class="dir-bar-label">Fwd</div>
+                    <div class="dir-bar-fill"><div class="dir-bar-fill-inner" id="dir-forward-fill"></div></div>
+                    <div class="dir-bar-value" id="dir-forward-val">0%</div>
+                </div>
+                <div class="dir-bar" id="dir-slight-right">
+                    <div class="dir-bar-label">Slt R</div>
+                    <div class="dir-bar-fill"><div class="dir-bar-fill-inner" id="dir-slight-right-fill"></div></div>
+                    <div class="dir-bar-value" id="dir-slight-right-val">0%</div>
+                </div>
+                <div class="dir-bar" id="dir-right">
+                    <div class="dir-bar-label">Right</div>
+                    <div class="dir-bar-fill"><div class="dir-bar-fill-inner" id="dir-right-fill"></div></div>
+                    <div class="dir-bar-value" id="dir-right-val">0%</div>
+                </div>
+            </div>
+
+            <div class="nav-stats">
+                <div class="nav-stat-item">
+                    <div class="nav-stat-label">Safest Dir</div>
+                    <div class="nav-stat-value" id="nav-safest-dir">—</div>
+                </div>
+                <div class="nav-stat-item">
+                    <div class="nav-stat-label">Steering</div>
+                    <div class="nav-stat-value" id="nav-steering">—</div>
+                </div>
+                <div class="nav-stat-item">
+                    <div class="nav-stat-label">Lane Conf</div>
+                    <div class="nav-stat-value" id="nav-lane-conf">—</div>
+                </div>
+                <div class="nav-stat-item">
+                    <div class="nav-stat-label">Collision Prob</div>
+                    <div class="nav-stat-value" id="nav-collision-prob">—</div>
+                </div>
+                <div class="nav-stat-item">
+                    <div class="nav-stat-label">Path Continuity</div>
+                    <div class="nav-stat-value" id="nav-path-cont">—</div>
+                </div>
+                <div class="nav-stat-item">
+                    <div class="nav-stat-label">Future Risk</div>
+                    <div class="nav-stat-value" id="nav-future-risk">—</div>
+                </div>
+            </div>
+            <div id="nav-hazard-box"></div>
+        </div>
+
+        <!-- Live Feed (dark product card) -->
+        <div class="hero-feed">
+            <span class="feed-label">Live Camera Feed</span>
+            <video id="video" autoplay playsinline muted></video>
+            <div id="ice-log">Waiting for ICE candidates…</div>
+        </div>
+    </section>
+
+    <!-- ── Analysis Streams (soft background band) ──────── -->
+    <section class="streams-band">
+        <div class="band-inner">
+            <h2>Analysis streams</h2>
+            <div class="streams-grid">
+                <!-- YOLO Detection -->
+                <div class="stream-card">
+                    <div class="stream-card-header">
+                        <div class="stream-card-icon" style="background:#cc785c22;color:var(--primary)">⬡</div>
+                        <h3>Object Detection</h3>
+                    </div>
+                    <div class="stream-card-body">
+                        <video id="yolo-video" autoplay playsinline muted></video>
+                        <canvas id="detection-canvas" class="stream-canvas" style="display:none;"></canvas>
+
+                        <div class="stats-grid">
+                            <div class="stat-box"><div class="stat-label">Count</div><div class="stat-value" id="detection-count">0</div></div>
+                            <div class="stat-box"><div class="stat-label">Conf</div><div class="stat-value" id="avg-confidence">0%</div></div>
+                            <div class="stat-box"><div class="stat-label">FPS</div><div class="stat-value" id="yolo-fps">0</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Depth Estimation -->
+                <div class="stream-card">
+                    <div class="stream-card-header">
+                        <div class="stream-card-icon" style="background:#5db8a622;color:var(--accent-teal)">◉</div>
+                        <h3>Depth Estimation</h3>
+                    </div>
+                    <div class="stream-card-body">
+                        <video id="depth-video" autoplay playsinline muted></video>
+                        <canvas id="depth-canvas" class="stream-canvas" style="display:none;"></canvas>
+                        <div class="stats-grid">
+                            <div class="stat-box"><div class="stat-label">Min</div><div class="stat-value" id="depth-min">N/A</div></div>
+                            <div class="stat-box"><div class="stat-label">Max</div><div class="stat-value" id="depth-max">N/A</div></div>
+                            <div class="stat-box"><div class="stat-label">FPS</div><div class="stat-value" id="depth-fps">0</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optical Flow -->
+                <div class="stream-card">
+                    <div class="stream-card-header">
+                        <div class="stream-card-icon" style="background:#e8a55a22;color:var(--warning)">↗</div>
+                        <h3>Optical Flow</h3>
+                    </div>
+                    <div class="stream-card-body">
+                        <video id="tracking-video" autoplay playsinline muted></video>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Fusion + Side Cards (cream band) ─────────────── -->
+    <section class="fusion-band">
+        <h2>Fusion &amp; segmentation</h2>
+        <div class="fusion-grid">
+            <!-- Distance Fusion (dark product card) -->
+            <div class="fusion-card-dark">
+                <span class="feed-label">Directional Safety Fusion · YOLO + Depth + Flow</span>
+                <video id="distance-video" autoplay playsinline muted></video>
+            </div>
+
+            <!-- Side: Pothole + Road Path -->
+            <div class="side-cards">
+                <div class="stream-card">
+                    <div class="stream-card-header">
+                        <div class="stream-card-icon" style="background:#c6454522;color:var(--error)">⚠</div>
+                        <h3>Pothole Detection</h3>
+                    </div>
+                    <div class="stream-card-body">
+                        <video id="pothole-video" autoplay playsinline muted></video>
+                    </div>
+                </div>
+                <div class="stream-card">
+                    <div class="stream-card-header">
+                        <div class="stream-card-icon" style="background:#5db87222;color:var(--success)">◧</div>
+                        <h3>Road Segmentation</h3>
+                    </div>
+                    <div class="stream-card-body">
+                        <video id="road-path-video" autoplay playsinline muted></video>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Footer ──────────────────────────────────────── -->
+    <footer class="footer-band">
+        <div class="footer-inner">
+            <span>✦ GabAi — Directional Safety Field</span>
+            <span>Real-time vision-based navigation</span>
+        </div>
+    </footer>
+
+    <script>
+        const statusEl = document.getElementById("status");
+        const iceLogEl = document.getElementById("ice-log");
+        const reconnectBtn = document.getElementById("reconnect-btn");
+        const videoEl = document.getElementById("video");
+        const yoloVideoEl = document.getElementById("yolo-video");
+        const depthVideoEl = document.getElementById("depth-video");
+        const trackingVideoEl = document.getElementById("tracking-video");
+        const distanceVideoEl = document.getElementById("distance-video");
+        const potholeVideoEl = document.getElementById("pothole-video");
+        const roadPathVideoEl = document.getElementById("road-path-video");
+        const detectionCanvas = document.getElementById("detection-canvas");
+        const depthCanvas = document.getElementById("depth-canvas");
+        const detectionCtx = detectionCanvas.getContext("2d");
+        const depthCtx = depthCanvas.getContext("2d");
+
+        let pc = null;
+        let detectionChannel = null;
+        let depthChannel = null;
+        let navigationChannel = null;
+        let receivedVideoTracks = 0;
+        const disconnectedGraceMs = 1500;
+        const trackArrivalGraceMs = 1200;
+        let sourceReadySeen = false;
+        let disconnectedSince = 0;
+        let isStarting = false;
+        let lastStartAt = 0;
+        let currentSourceGeneration = -1; // tracks which source we're connected to
+        let sseSource = null;             // EventSource for instant notifications
+        let stats = {
+            detections: [],
+            depth: { min: 0, max: 0, avg: 0 },
+            frames: 0,
+            fps: 0,
+            yoloFps: 0,
+            depthFps: 0
+        };
+
+        function setStatus(msg, cls = "") {
+            statusEl.textContent = msg;
+            statusEl.className = cls;
+            const dot = document.getElementById('status-dot');
+            if (dot) {
+                dot.className = 'dot' + (cls === 'connected' ? ' live' : cls === 'error' ? ' error' : '');
+            }
+            console.log("[STATUS]", msg);
+        }
+
+        function logIce(candidate) {
+            const line = document.createElement("div");
+            const text = candidate || "(end of candidates)";
+            
+            if (text.includes("typ relay")) {
+                line.className = "relay";
+                line.textContent = "[relay] " + text.substring(0, 60);
+            } else if (text.includes("typ srflx")) {
+                line.className = "srflx";
+                line.textContent = "[srflx] " + text.substring(0, 60);
+            } else {
+                line.className = "host";
+                line.textContent = "[host] " + text.substring(0, 60);
+            }
+            
+            iceLogEl.appendChild(line);
+            iceLogEl.scrollTop = iceLogEl.scrollHeight;
+        }
+
+        function handleDetectionFrame(detections, fps) {
+            // Update detections list
+            stats.detections = detections || [];
+            document.getElementById('detection-count').textContent = stats.detections.length;
+            
+            if (stats.detections.length > 0) {
+                const avgConf = (stats.detections.reduce((sum, d) => sum + d.confidence, 0) / stats.detections.length * 100).toFixed(0);
+                document.getElementById('avg-confidence').textContent = avgConf + '%';
+                
+            } else {
+                document.getElementById('avg-confidence').textContent = '0%';
+            }
+            document.getElementById('yolo-fps').textContent = (fps || 0).toFixed(1);
+        }
+
+        function handleDepthFrame(minDist, maxDist, fps) {
+            stats.depth = { min: minDist, max: maxDist };
+            document.getElementById('depth-min').textContent = minDist?.toFixed(2) + 'm' || 'N/A';
+            document.getElementById('depth-max').textContent = maxDist?.toFixed(2) + 'm' || 'N/A';
+            document.getElementById('depth-fps').textContent = (fps || 0).toFixed(1);
+        }
+
+        function riskToColor(risk) {
+            // Map risk score (0-1) to color gradient
+            // 0.0: Green (safe) → 0.33: Yellow (caution) → 0.67: Orange (warning) → 1.0: Red (danger)
+            if (risk < 0.25) {
+                // Green zone: #5db872
+                return `hsl(140, 32%, 55%)`;
+            } else if (risk < 0.5) {
+                // Yellow zone: blend green→amber
+                const t = (risk - 0.25) / 0.25;
+                return `hsl(${140 - t * 50}, ${32 + t * 40}%, ${55 - t * 5}%)`;
+            } else if (risk < 0.75) {
+                // Orange/Amber zone: #d4a017 → #cc785c
+                const t = (risk - 0.5) / 0.25;
+                return `hsl(${90 - t * 30}, ${72 - t * 20}%, ${50 - t * 5}%)`;
+            } else {
+                // Red zone: #c64545
+                const t = (risk - 0.75) / 0.25;
+                return `hsl(${60 - t * 60}, ${52 + t * 30}%, ${45 - t * 10}%)`;
+            }
+        }
+
+        function drawCompass(angle, command) {
+            const canvas = document.getElementById('compass-canvas');
+            const label = document.getElementById('compass-label');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const cx = 36, cy = 36, r = 28;
+            ctx.clearRect(0, 0, 72, 72);
+
+            // Background circle with gradient
+            const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            gradient.addColorStop(0, '#252320');
+            gradient.addColorStop(1, '#1f1e1b');
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Cardinal direction markers (N, E, S, W)
+            const dirs = [
+                { angle: -90, label: 'N', radius: r - 2 },
+                { angle: 0, label: 'E', radius: r - 2 },
+                { angle: 90, label: 'S', radius: r - 2 },
+                { angle: 180, label: 'W', radius: r - 2 }
+            ];
+            
+            ctx.font = 'bold 8px var(--font-body)';
+            ctx.fillStyle = '#8e8b82';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            for (const d of dirs) {
+                const rad = d.angle * Math.PI / 180;
+                const x = cx + d.radius * Math.cos(rad);
+                const y = cy + d.radius * Math.sin(rad);
+                ctx.fillText(d.label, x, y);
+            }
+
+            // Direction ticks at 30-degree intervals
+            for (let a = -60; a <= 60; a += 30) {
+                const rad = (a - 90) * Math.PI / 180;
+                const innerRadius = r - 3;
+                const outerRadius = r;
+                const x1 = cx + innerRadius * Math.cos(rad);
+                const y1 = cy + innerRadius * Math.sin(rad);
+                const x2 = cx + outerRadius * Math.cos(rad);
+                const y2 = cy + outerRadius * Math.sin(rad);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = '#555';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Draw arrow/command indicator
+            if (command === 'Stop' || !command) {
+                // Draw X for stop
+                const xSize = 10;
+                ctx.strokeStyle = '#c64545';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(cx - xSize, cy - xSize);
+                ctx.lineTo(cx + xSize, cy + xSize);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(cx + xSize, cy - xSize);
+                ctx.lineTo(cx - xSize, cy + xSize);
+                ctx.stroke();
+            } else {
+                // Draw direction arrow
+                const arrowRad = (angle - 90) * Math.PI / 180;
+                const arrowLen = 18;
+                const tipX = cx + arrowLen * Math.cos(arrowRad);
+                const tipY = cy + arrowLen * Math.sin(arrowRad);
+                
+                // Arrow line with glow
+                ctx.strokeStyle = 'rgba(93, 184, 166, 0.3)';
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(tipX, tipY);
+                ctx.stroke();
+                
+                // Arrow line (bright)
+                ctx.strokeStyle = '#5db8a6';
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(tipX, tipY);
+                ctx.stroke();
+                
+                // Arrowhead
+                const headLen = 8;
+                const headAngle = 0.45;
+                ctx.strokeStyle = '#5db8a6';
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                ctx.moveTo(tipX, tipY);
+                ctx.lineTo(
+                    tipX - headLen * Math.cos(arrowRad - headAngle),
+                    tipY - headLen * Math.sin(arrowRad - headAngle)
+                );
+                ctx.moveTo(tipX, tipY);
+                ctx.lineTo(
+                    tipX - headLen * Math.cos(arrowRad + headAngle),
+                    tipY - headLen * Math.sin(arrowRad + headAngle)
+                );
+                ctx.stroke();
+                
+                // Center dot
+                ctx.fillStyle = '#5db8a6';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Update label
+            if (label) {
+                const cmdText = command ? command.toUpperCase() : 'STOP';
+                label.textContent = cmdText.length > 12 ? cmdText.substring(0, 12) : cmdText;
+                label.style.color = command === 'Stop' ? '#c64545' : '#5db8a6';
+            }
+        }
+
+        function updateDirectionalBars(dirRisks, recommendedDir, fanZoneColors = null) {
+            const dirMap = {
+                'left': 'dir-left',
+                'slight_left': 'dir-slight-left',
+                'forward': 'dir-forward',
+                'slight_right': 'dir-slight-right',
+                'right': 'dir-right'
+            };
+            
+            for (const [dirName, elId] of Object.entries(dirMap)) {
+                const risk = Math.max(0, Math.min(1, dirRisks[dirName] || 0)); // Clamp 0-1
+                const fillEl = document.getElementById(elId + '-fill');
+                const valEl = document.getElementById(elId + '-val');
+                const barEl = document.getElementById(elId);
+                const backendColor = fanZoneColors && fanZoneColors[dirName] ? fanZoneColors[dirName] : null;
+                const color = backendColor || riskToColor(risk);
+                
+                if (fillEl) {
+                    fillEl.style.height = (risk * 100) + '%';
+                    fillEl.style.background = color;
+                }
+                
+                if (valEl) {
+                    const percentage = (risk * 100).toFixed(0);
+                    valEl.textContent = percentage + '%';
+                    valEl.style.color = color;
+                }
+                
+                if (barEl) {
+                    const isRecommended = dirName === recommendedDir;
+                    barEl.classList.toggle('recommended', isRecommended);
+                }
+            }
+        }
+
+        function handleNavigationData(navData) {
+            if (!navData) return;
+            
+            const panel = document.getElementById('navigation-panel');
+            const primary = document.getElementById('nav-primary');
+            const secondary = document.getElementById('nav-secondary');
+            const hazardBox = document.getElementById('nav-hazard-box');
+            const safestDir = document.getElementById('nav-safest-dir');
+            const steering = document.getElementById('nav-steering');
+            const laneConf = document.getElementById('nav-lane-conf');
+            const collisionProb = document.getElementById('nav-collision-prob');
+            const pathCont = document.getElementById('nav-path-cont');
+            const futureRisk = document.getElementById('nav-future-risk');
+
+            if (panel) panel.style.display = 'block';
+
+            // Primary instruction
+            if (primary) {
+                primary.textContent = navData.nav_command || navData.primary || 'Processing…';
+                if (navData.urgency === 'critical') {
+                    primary.style.color = '#c64545';
+                } else if (navData.urgency === 'urgent') {
+                    primary.style.color = '#cc785c';
+                } else if (navData.urgency === 'warning') {
+                    primary.style.color = '#d4a017';
+                } else {
+                    primary.style.color = '#141413';
+                }
+            }
+
+            // Secondary
+            if (secondary) {
+                secondary.textContent = navData.secondary || '';
+            }
+
+            // Safest Dir
+            if (safestDir) {
+                safestDir.textContent = (navData.safest_direction || navData.nav_command || '-').replace('_', ' ').toUpperCase();
+            }
+
+            // Steering strength
+            if (steering && navData.steering_strength !== undefined) {
+                steering.textContent = navData.steering_strength.toFixed(2);
+                steering.style.color = Math.abs(navData.steering_strength) > 0.5 ? '#cc785c' : '#5db872';
+            }
+
+            // Lane Confidence
+            if (laneConf && navData.lane_confidence !== undefined) {
+                laneConf.textContent = (navData.lane_confidence * 100).toFixed(0) + '%';
+                laneConf.style.color = navData.lane_confidence < 0.4 ? '#c64545' :
+                    navData.lane_confidence < 0.7 ? '#d4a017' : '#5db872';
+            }
+
+            // Collision Probability
+            if (collisionProb && navData.collision_probability !== undefined) {
+                collisionProb.textContent = (navData.collision_probability * 100).toFixed(0) + '%';
+                collisionProb.style.color = riskToColor(navData.collision_probability);
+            }
+
+            // Path Continuity
+            if (pathCont && navData.path_continuity_score !== undefined) {
+                pathCont.textContent = (navData.path_continuity_score * 100).toFixed(0) + '%';
+                pathCont.style.color = navData.path_continuity_score < 0.3 ? '#c64545' :
+                    navData.path_continuity_score < 0.6 ? '#cc785c' : '#5db872';
+            }
+
+            // Future Risk
+            if (futureRisk && navData.future_risk_score !== undefined) {
+                futureRisk.textContent = (navData.future_risk_score * 100).toFixed(0) + '%';
+                futureRisk.style.color = riskToColor(navData.future_risk_score);
+            }
+
+            // Directional risk bars
+            if (navData.direction_risks) {
+                const cmdStr = (navData.nav_command || 'forward').toLowerCase().trim();
+                // Map nav_command to direction name for highlighting
+                const cmdToDirMap = {
+                    'left': 'left', 
+                    'slight left': 'slight_left',
+                    'slight_left': 'slight_left',
+                    'forward': 'forward', 
+                    'go forward': 'forward',
+                    'slight right': 'slight_right',
+                    'slight_right': 'slight_right',
+                    'right': 'right', 
+                    'stop': 'forward'
+                };
+                const recDir = cmdToDirMap[cmdStr] || 'forward';
+                updateDirectionalBars(navData.direction_risks, recDir, navData.fan_zone_colors || null);
+            }
+
+            // Compass - draw arrow and update label
+            drawCompass(navData.nav_angle_deg || 0, navData.nav_command || 'Forward');
+
+            // Hazards
+            if (navData.pothole_present) {
+                hazardBox.innerHTML = '<div class="nav-hazard">⚠ Pothole detected ahead</div>';
+            } else {
+                hazardBox.innerHTML = '';
+            }
+
+            console.log('[NAV]', navData.nav_command, navData.secondary, 'risk:', navData.scene_risk);
+        }
+
+        function buildPeerConnection() {
+            const config = {
+                iceServers: [
+                    { urls: "stun:stun.l.google.com:19302" },
+                    { urls: "stun:stun1.l.google.com:19302" },
+                    {
+                        urls: "turn:openrelay.metered.ca:80",
+                        username: "openrelayproject",
+                        credential: "openrelayproject"
+                    },
+                    {
+                        urls: "turn:openrelay.metered.ca:443",
+                        username: "openrelayproject",
+                        credential: "openrelayproject"
+                    }
+                ],
+                iceCandidatePoolSize: 10,
+                bundlePolicy: "max-bundle",
+                rtcpMuxPolicy: "require",
+                sdpSemantics: "unified-plan"
+            };
+
+            const _pc = new RTCPeerConnection(config);
+
+            // Ask server for eight remote video tracks.
+            // Order: raw + YOLO + depth + tracking + distance + pothole + road-path + navigation.
+            _pc.addTransceiver("video", { direction: "recvonly" });
+            _pc.addTransceiver("video", { direction: "recvonly" });
+            _pc.addTransceiver("video", { direction: "recvonly" });
+            _pc.addTransceiver("video", { direction: "recvonly" });
+            _pc.addTransceiver("video", { direction: "recvonly" });
+            _pc.addTransceiver("video", { direction: "recvonly" });
+            _pc.addTransceiver("video", { direction: "recvonly" });
+            _pc.addTransceiver("video", { direction: "recvonly" });  // Navigation track
+
+            _pc.ontrack = (event) => {
+                console.log("Track received:", event.track.kind);
+
+                if (event.track.kind !== "video") {
+                    return;
+                }
+
+                const midIndex = Number(event.transceiver?.mid);
+                const trackSlot = Number.isInteger(midIndex) ? midIndex : receivedVideoTracks;
+
+                let targetEl = null;
+                let targetName = "";
+
+                if (trackSlot === 0) {
+                    targetEl = videoEl;
+                    targetName = "live";
+                } else if (trackSlot === 1) {
+                    targetEl = yoloVideoEl;
+                    targetName = "yolo";
+                } else if (trackSlot === 2) {
+                    targetEl = depthVideoEl;
+                    targetName = "depth";
+                } else if (trackSlot === 3) {
+                    targetEl = trackingVideoEl;
+                    targetName = "tracking";
+                } else if (trackSlot === 4) {
+                    targetEl = distanceVideoEl;
+                    targetName = "distance";
+                } else if (trackSlot === 5) {
+                    targetEl = potholeVideoEl;
+                    targetName = "pothole";
+                } else if (trackSlot === 6) {
+                    targetEl = roadPathVideoEl;
+                    targetName = "road-path";
+                } else if (trackSlot === 7) {
+                    // Navigation track - we don't display this visually,
+                    // navigation data comes via the data channel instead
+                    console.log("Navigation track received (data via channel)");
+                    receivedVideoTracks = Math.max(receivedVideoTracks, trackSlot + 1);
+                    return;
+                } else {
+                    console.warn("Ignoring extra video track at slot", trackSlot);
+                    return;
+                }
+
+                targetEl.srcObject = new MediaStream([event.track]);
+                targetEl.play().catch(() => {});
+                receivedVideoTracks = Math.max(receivedVideoTracks, trackSlot + 1);
+                sourceReadySeen = true;
+                console.log(`Attached ${targetName} video track`);
+                setStatus("Connected", "connected");
+            };
+
+            // For negotiated channels, ondatachannel never fires on either side.
+            // Both sides already have the channel. We just listen for messages here.
+            _pc.ondatachannel = (event) => {
+                console.log("Unexpected non-negotiated datachannel:", event.channel.label);
+            };
+
+            // Create negotiated data channels (must match server-side IDs)
+            try {
+                detectionChannel = _pc.createDataChannel("detection", { negotiated: true, id: 0 });
+                depthChannel     = _pc.createDataChannel("depth",     { negotiated: true, id: 1 });
+                navigationChannel = _pc.createDataChannel("navigation", { negotiated: true, id: 2 });
+                console.log("Created negotiated data channels (0=detection, 1=depth, 2=navigation)");
+            } catch (err) {
+                console.error("Failed to create negotiated data channels:", err);
+            }
+
+            function attachChannelHandlers(channel, label) {
+                channel.onopen = () => {
+                    console.log(`[DC] ${label} channel OPEN (readyState: ${channel.readyState})`);
+                };
+                channel.onclose = () => {
+                    console.log(`[DC] ${label} channel CLOSED`);
+                };
+                channel.onmessage = (e) => {
+                    try {
+                        // Sanitize JSON: replace Infinity with null
+                        let sanitized = e.data.replace(/Infinity/g, 'null');
+                        const data = JSON.parse(sanitized);
+                        if (label === "detection") {
+                            handleDetectionFrame(data.detections, data.fps);
+                        } else if (label === "depth") {
+                            handleDepthFrame(data.min_depth, data.max_depth, data.fps);
+                        } else if (label === "navigation") {
+                            handleNavigationData(data);
+                        }
+                    } catch (err) {
+                        console.error(`[DC] Parse error on ${label}:`, err);
+                    }
+                };
+            }
+
+            if (detectionChannel)  attachChannelHandlers(detectionChannel,  "detection");
+            if (depthChannel)      attachChannelHandlers(depthChannel,      "depth");
+            if (navigationChannel) attachChannelHandlers(navigationChannel, "navigation");
+
+            _pc.onconnectionstatechange = () => {
+                const state = _pc.connectionState;
+                console.log("[CONN]", state);
+                switch (state) {
+                    case "connected":
+                        setStatus("Connected and receiving video!", "connected");
+                        disconnectedSince = 0;
+                        reconnectBtn.style.display = "none";
+                        break;
+                    case "connecting":
+                        setStatus("Connecting to stream...");
+                        disconnectedSince = 0;
+                        break;
+                    case "disconnected":
+                        setStatus("Disconnected from stream", "error");
+                        if (!disconnectedSince) {
+                            disconnectedSince = Date.now();
+                        }
+                        break;
+                    case "failed":
+                        setStatus("Connection failed - waiting to retry", "error");
+                        disconnectedSince = Date.now();
+                        reconnectBtn.style.display = "inline-block";
+                        break;
+                    case "closed":
+                        setStatus("Connection closed", "");
+                        disconnectedSince = Date.now();
+                        break;
+                }
+            };
+
+            _pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    logIce(event.candidate.candidate);
+                } else {
+                    logIce(null);
+                }
+            };
+
+            return _pc;
+        }
+
+        async function start() {
+            if (isStarting) {
+                return;
+            }
+
+            isStarting = true;
+            lastStartAt = Date.now();
+
+            try {
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+
+            receivedVideoTracks = 0;
+            sourceReadySeen = false;
+            videoEl.srcObject = null;
+            yoloVideoEl.srcObject = null;
+            depthVideoEl.srcObject = null;
+            trackingVideoEl.srcObject = null;
+            distanceVideoEl.srcObject = null;
+            potholeVideoEl.srcObject = null;
+            roadPathVideoEl.srcObject = null;
+
+            iceLogEl.innerHTML = "";
+            reconnectBtn.style.display = "none";
+            setStatus("Creating peer connection...");
+
+            pc = buildPeerConnection();
+
+            try {
+                setStatus("Creating offer...");
+
+                const offer = await pc.createOffer();
+
+                await pc.setLocalDescription(offer);
+                setStatus("Sending offer to server...");
+
+                const res = await fetch("/offer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(pc.localDescription)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error("Server error " + res.status + ": " + (err.error || "unknown"));
+                }
+
+                const answer = await res.json();
+                console.log("Answer received, SDP length:", answer.sdp.length);
+
+                await pc.setRemoteDescription(new RTCSessionDescription(answer));
+                setStatus("✅ Connected! Waiting for video stream...");
+
+            } catch (err) {
+                console.error("Error:", err);
+                setStatus("❌ Error: " + err.message + " (Retrying in 3s...)", "error");
+                reconnectBtn.style.display = "inline-block";
+                setTimeout(() => {
+                    if (!pc || pc.connectionState !== "connected") {
+                        reconnect("auto_retry_on_fetch_error");
+                    }
+                }, 3000);
+            }
+            } finally {
+                isStarting = false;
+            }
+        }
+
+        function reconnect(reason = "manual") {
+            reconnectBtn.style.display = "none";
+            console.log("[RECONNECT]", reason);
+            start();
+        }
+
+        // ────────────────────────────────────────────────────────────────
+        // SSE: instant push notifications when video source changes
+        // ────────────────────────────────────────────────────────────────
+        function connectSSE() {
+            if (sseSource) {
+                sseSource.close();
+            }
+
+            sseSource = new EventSource("/events");
+            console.log("[SSE] Connecting to /events...");
+
+            sseSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log("[SSE] Event:", data.event, "gen:", data.generation);
+
+                    if (data.event === "source_ready") {
+                        const newGen = data.generation || 0;
+                        if (newGen !== currentSourceGeneration) {
+                            currentSourceGeneration = newGen;
+                            console.log(`[SSE] New source (gen ${newGen}), reconnecting NOW`);
+                            setStatus("📱 Android connected! Reconnecting...", "connected");
+                            // Small delay to let server finish closing stale PCs
+                            setTimeout(() => reconnect("sse_source_ready"), 300);
+                        }
+                    } else if (data.event === "status") {
+                        // Initial status on SSE connect
+                        if (data.source_ready && !sourceReadySeen) {
+                            currentSourceGeneration = data.generation || 0;
+                            if (receivedVideoTracks < 1) {
+                                console.log("[SSE] Source already ready, connecting...");
+                                setTimeout(() => reconnect("sse_initial_ready"), 200);
+                            }
+                        }
+                    }
+                } catch (err) {
+                    // Keepalive comments are not JSON, ignore
+                }
+            };
+
+            sseSource.onerror = () => {
+                console.warn("[SSE] Connection error, retrying in 3s...");
+                sseSource.close();
+                setTimeout(connectSSE, 3000);
+            };
+        }
+
+        // Auto-reconnect on WebRTC failure / disconnection
+        setInterval(() => {
+            const disconnectedTooLong =
+                pc &&
+                pc.connectionState === "disconnected" &&
+                disconnectedSince &&
+                Date.now() - disconnectedSince > disconnectedGraceMs;
+
+            if (pc && (pc.connectionState === "failed" || pc.connectionState === "closed" || disconnectedTooLong)) {
+                console.log("Auto-reconnecting (state watchdog)...");
+                reconnect("state_watchdog");
+            }
+        }, 1000);
+
+        // Fallback poll: if SSE fails, still check periodically (much slower)
+        setInterval(async () => {
+            if (isStarting || receivedVideoTracks >= 1) return;
+            if (!pc || (pc.connectionState !== "connected" && pc.connectionState !== "connecting")) return;
+            if (Date.now() - lastStartAt < trackArrivalGraceMs) return;
+
+            try {
+                const res = await fetch("/stream-status", { cache: "no-store" });
+                if (!res.ok) return;
+                const status = await res.json();
+                if (status.source_ready && !sourceReadySeen) {
+                    sourceReadySeen = true;
+                    currentSourceGeneration = status.generation || 0;
+                    console.log("[POLL] Source ready (fallback), reconnecting...");
+                    reconnect("poll_source_ready");
+                } else if (!status.source_ready) {
+                    sourceReadySeen = false;
+                }
+            } catch (err) {
+                // Ignore
+            }
+        }, 5000); // 5s fallback, SSE is the primary mechanism
+
+        // Initialize canvases
+        detectionCanvas.width = 640;
+        detectionCanvas.height = 480;
+        depthCanvas.width = 640;
+        depthCanvas.height = 480;
+
+        // Start SSE listener first, then initial WebRTC connection
+        connectSSE();
+        start();
+    </script>
+</body>
+</html>

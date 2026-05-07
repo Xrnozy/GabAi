@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- design.md inspired tokens (Anthropic-like) -->
+    <color name="canvas">#FFFAF9F5</color>
+    <color name="surface_card">#FFEFE9DE</color>
+    <color name="surface_dark">#FF181715</color>
+    <color name="surface_dark_elevated">#FF252320</color>
+    <color name="hairline">#FFE6DFD8</color>
+
+    <color name="ink">#FF141413</color>
+    <color name="body">#FF3D3D3A</color>
+    <color name="muted">#FF6C6A64</color>
+    <color name="on_dark">#FFFAF9F5</color>
+    <color name="on_dark_soft">#FFA09D96</color>
+
+    <color name="primary">#FFCC785C</color>
+    <color name="primary_active">#FFA9583E</color>
+    <color name="on_primary">#FFFFFFFF</color>
+</resources>
