@@ -89,3 +89,4 @@ tokenizer.json
 backend/models/ocr/
 
 .venv-glm/
+backend/testing/BreezySLAM/
