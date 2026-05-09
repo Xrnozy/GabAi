@@ -8,7 +8,7 @@ from ultralytics import YOLO
 
 
 BASE_DIR = Path(__file__).resolve().parent
-ASL_MODEL_PATH = BASE_DIR / "models" / "asl" / "yolo11m.pt"
+ASL_MODEL_PATH = BASE_DIR / "models" / "asl" / "yolov8x1.pt"
 
 
 def _normalize_label(label: str) -> str:

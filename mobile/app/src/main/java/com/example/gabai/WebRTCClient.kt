@@ -33,6 +33,9 @@ class WebRTCClient(
     private var localVideoTrack: VideoTrack? = null
     private var navigationChannel: DataChannel? = null
 
+    @Volatile
+    private var isReleased = false
+
     companion object {
         private const val TAG = "WebRTCClient"
     }
@@ -177,6 +180,7 @@ class WebRTCClient(
     // OFFER
     // -------------------------
     fun createOffer() {
+        if (isReleased) return
 
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "false"))
@@ -188,10 +192,11 @@ class WebRTCClient(
         peerConnection?.createOffer(object : SdpObserver {
 
             override fun onCreateSuccess(desc: SessionDescription) {
-
+                if (isReleased) return
                 peerConnection?.setLocalDescription(object : SdpObserver {
 
                     override fun onSetSuccess() {
+                        if (isReleased) return
                         sendOfferToServer(desc)
                     }
 
@@ -212,6 +217,8 @@ class WebRTCClient(
     private fun sendOfferToServer(offer: SessionDescription) {
         Thread {
             try {
+                if (isReleased) return@Thread
+
                 val json = JSONObject().apply {
                     put("type", offer.type.canonicalForm())
                     put("sdp", offer.description)
@@ -232,6 +239,8 @@ class WebRTCClient(
                 val response =
                     conn.inputStream.bufferedReader().use { it.readText() }
 
+                if (isReleased) return@Thread
+
                 val answerJson = JSONObject(response)
 
                 val answer = SessionDescription(
@@ -241,30 +250,42 @@ class WebRTCClient(
                     answerJson.getString("sdp")
                 )
 
-                peerConnection?.setRemoteDescription(
-                    object : SdpObserver {
-                        override fun onSetSuccess() {
-                            println("[RTC] Connected")
-                        }
+                if (!isReleased && peerConnection != null) {
+                    peerConnection?.setRemoteDescription(
+                        object : SdpObserver {
+                            override fun onSetSuccess() {
+                                println("[RTC] Connected")
+                            }
 
-                        override fun onSetFailure(p0: String?) {}
-                        override fun onCreateSuccess(p0: SessionDescription?) {}
-                        override fun onCreateFailure(p0: String?) {}
-                    },
-                    answer
-                )
+                            override fun onSetFailure(p0: String?) {}
+                            override fun onCreateSuccess(p0: SessionDescription?) {}
+                            override fun onCreateFailure(p0: String?) {}
+                        },
+                        answer
+                    )
+                }
 
             } catch (e: Exception) {
-                e.printStackTrace()
+                if (!isReleased) {
+                    e.printStackTrace()
+                }
             }
         }.start()
     }
 
     fun release() {
-        videoCapturer?.stopCapture()
+        isReleased = true
+        try {
+            videoCapturer?.stopCapture()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         videoCapturer?.dispose()
+        videoCapturer = null
         videoSource?.dispose()
+        videoSource = null
         peerConnection?.close()
+        peerConnection = null
         peerConnectionFactory.dispose()
         eglBase.release()
     }

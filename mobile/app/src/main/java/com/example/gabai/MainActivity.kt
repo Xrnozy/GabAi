@@ -47,10 +47,18 @@ class MainActivity : AppCompatActivity() {
         tts = TtsService(this, Locale.US)
         haptics = Haptics(this)
 
-        val btnNavigation = findViewById<android.widget.Button>(R.id.btn_navigation)
-        val btnAsl = findViewById<android.widget.Button>(R.id.btn_asl)
-        val btnOcr = findViewById<android.widget.Button>(R.id.btn_ocr)
-        val btnColor = findViewById<android.widget.Button>(R.id.btn_color)
+
+        // Bind cards (now LinearLayouts instead of Buttons)
+        val btnNavigation = findViewById<LinearLayout>(R.id.btn_navigation)
+        val btnAsl = findViewById<LinearLayout>(R.id.btn_asl)
+        val btnOcr = findViewById<LinearLayout>(R.id.btn_ocr)
+
+        val btnColor = findViewById<LinearLayout>(R.id.btn_color)
+
+        // Set dynamic greeting based on time of day
+        val tvTitle = findViewById<TextView>(R.id.tv_title)
+        tvTitle.text = getGreeting()
+
 
         // Ensure TalkBack focuses the primary actions early.
         ViewCompat.setAccessibilityHeading(tvTitle, true)
@@ -72,9 +80,7 @@ class MainActivity : AppCompatActivity() {
         btnOcr.setOnFocusChangeListener { v, hasFocus ->
             speakButtonNameOnFocus(v, hasFocus, "O C R")
         }
-        btnEasyOcr.setOnFocusChangeListener { v, hasFocus ->
-            speakButtonNameOnFocus(v, hasFocus, "Easy O C R")
-        }
+
         btnColor.setOnFocusChangeListener { v, hasFocus ->
             speakButtonNameOnFocus(v, hasFocus, "Color")
         }
@@ -97,11 +103,6 @@ class MainActivity : AppCompatActivity() {
             openMode(Mode.OCR)
         }
 
-        btnEasyOcr.setOnClickListener {
-            haptics.click()
-            tts.speak("Easy O C R")
-            openMode(Mode.EASY_OCR)
-        }
 
         btnColor.setOnClickListener {
             haptics.click()

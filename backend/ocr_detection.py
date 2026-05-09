@@ -1,10 +1,12 @@
 import time
 from dataclasses import dataclass
 from typing import Optional, Tuple
+import pytesseract
 
 import cv2
 import numpy as np
 
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 def _clean_text(text: str) -> str:
     return " ".join((text or "").strip().split())
@@ -16,9 +18,21 @@ class LazyTesseractRecognizer:
     Returns (text, confidence) where confidence is [0, 1].
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        max_dim: int = 800,
+        min_word_conf: float = 0.45,
+        min_text_conf: float = 0.35,
+        min_word_chars: int = 2,
+    ):
         self._backend: Optional[str] = None
         self._pytesseract = None
+        self._max_dim = max_dim
+        self._min_word_conf = min_word_conf
+        self._min_text_conf = min_text_conf
+        self._min_word_chars = min_word_chars
+        self._lang = "eng"
+        self._config = "--oem 1 --psm 6"
 
     def _ensure_loaded(self):
         if self._backend is not None:
@@ -39,36 +53,67 @@ class LazyTesseractRecognizer:
             self._backend = "none"
             print(f"[TESSERACT] pytesseract load failed: {exc}")
 
+    def _resize_for_speed(self, frame_bgr: np.ndarray) -> np.ndarray:
+        if self._max_dim <= 0:
+            return frame_bgr
+        h, w = frame_bgr.shape[:2]
+        if max(h, w) <= self._max_dim:
+            return frame_bgr
+        scale = self._max_dim / float(max(h, w))
+        return cv2.resize(frame_bgr, (int(w * scale), int(h * scale)))
+
+    def _filter_token(self, text: str, conf: float) -> Optional[str]:
+        t = _clean_text(text)
+        if not t:
+            return None
+        alnum = sum(ch.isalnum() for ch in t)
+        if alnum == 0:
+            return None
+        if len(t) < self._min_word_chars and not t.isdigit():
+            return None
+        if len(t) >= 3 and (alnum / len(t)) < 0.5:
+            return None
+        if conf < self._min_word_conf:
+            return None
+        return t
+
     def infer(self, frame_bgr: np.ndarray) -> Tuple[Optional[str], float]:
         self._ensure_loaded()
         if self._backend != "pytesseract" or self._pytesseract is None:
             return None, 0.0
 
         try:
+            frame_bgr = self._resize_for_speed(frame_bgr)
             rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
             data = self._pytesseract.image_to_data(
                 rgb,
                 output_type=self._pytesseract.Output.DICT,
+                lang=self._lang,
+                config=self._config,
             )
 
             texts = []
             confs = []
             for text, conf in zip(data.get("text", []), data.get("conf", [])):
-                t = _clean_text(str(text))
+                try:
+                    c_raw = float(conf)
+                except Exception:
+                    continue
+                if c_raw < 0.0:
+                    continue
+                c = c_raw / 100.0
+                t = self._filter_token(str(text), c)
                 if not t:
                     continue
                 texts.append(t)
-                try:
-                    c = float(conf)
-                except Exception:
-                    c = -1.0
-                if c >= 0.0:
-                    confs.append(c / 100.0)
+                confs.append(c)
 
             merged = _clean_text(" ".join(texts))
             if not merged:
                 return None, 0.0
-            confidence = float(np.clip(np.mean(confs), 0.0, 1.0)) if confs else 0.5
+            confidence = float(np.clip(np.mean(confs), 0.0, 1.0)) if confs else 0.0
+            if confidence < self._min_text_conf:
+                return None, 0.0
             return merged, confidence
         except Exception as exc:
             print(f"[TESSERACT] inference failed: {exc}")

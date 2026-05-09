@@ -14,7 +14,7 @@
     <string name="card_asl_desc">Translate sign language in real time</string>
     <string name="card_color_title">Color Detection</string>
     <string name="card_color_desc">Identify colors around you</string>
-    <string name="card_nav_title">Smart Navigation</string>
+    <string name="card_nav_title">Navigation</string>
     <string name="card_nav_desc">Voice-guided safe pathfinding</string>
     <string name="card_ocr_title">OCR Reader</string>
     <string name="card_ocr_desc">Scan and read text aloud</string>
@@ -63,5 +63,5 @@
     <string name="btn_back">Back</string>
     <string name="btn_back_desc">Go back to dashboard</string>
     <string name="mic_desc">Microphone — tap to speak</string>
-    <string name="ai_powered">Powered by AI</string>
+    <string name="ai_powered">Powered by Android TTS</string>
 </resources>

@@ -78,9 +78,8 @@ GabAi addresses these challenges through:
 - **Road walkability assessment**: Pothole detection and surface quality inference.
 - **Steering strength & lane confidence**: Quantitative metrics for downstream planning.
 
-### OCR Modes
+### OCR Mode
 - **Tesseract OCR**: Fast, lightweight, CPU-friendly text recognition.
-- **EasyOCR**: Higher-accuracy alternative with GPU acceleration support.
 - **Frame preprocessing**: Automatic contrast enhancement and blur sharpening for improved legibility.
 - **Stability control**: Cooldown and multi-frame voting to reduce false positives.
 
@@ -121,7 +120,6 @@ GabAi addresses these challenges through:
 │  │   VideoStreamTrack Pipeline (per-mode)                  │   │
 │  │  ├─ NavigationTrack: Depth + YOLO + Flow + Segmentation │   │
 │  │  ├─ OCRTrack: Tesseract text extraction                  │   │
-│  │  ├─ EasyOCRTrack: EasyOCR text extraction                │   │
 │  │  ├─ ASLTrack: Gesture recognition                        │   │
 │  │  └─ ColorTrack: Color classification                     │   │
 │  └──────────────────────────────────────────────────────────┘   │
@@ -152,7 +150,6 @@ GabAi addresses these challenges through:
 | **Detection** | `detection.py` | YOLO general detection, pothole detection |
 | **Navigation Fusion** | `directional_safety.py`, `navigation.py`, `video_tracks.py` | Directional safety field, risk fusion |
 | **OCR** | `ocr_detection.py`, `ocr_video_tracks.py` | Tesseract-based text extraction |
-| **EasyOCR** | `easyocr_detection.py`, `easyocr_video_tracks.py` | EasyOCR-based text extraction |
 | **ASL** | `asl_detection.py`, `asl_video_tracks.py` | Gesture recognition |
 | **Color** | `color_detection.py`, `color_video_tracks.py` | Color classification |
 | **Visualization** | `visualization.py` | Overlay rendering, HUD graphics |
@@ -166,7 +163,6 @@ GabAi addresses these challenges through:
 ### Deep Learning & Computer Vision
 - **[Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2)** (encoder: vitl): Universal monocular depth estimation.
 - **[YOLOv8](https://github.com/ultralytics/ultralytics)**: Real-time object detection for obstacle/hazard identification.
-- **[EasyOCR](https://github.com/JaidedAI/EasyOCR)**: Multi-language optical character recognition.
 - **[Tesseract OCR](https://github.com/UB-Mannheim/tesseract)**: Lightweight CPU-based text recognition.
 - **[OpenCV](https://opencv.org/)**: Image processing, optical flow (Lucas–Kanade), morphological operations.
 
@@ -180,6 +176,7 @@ GabAi addresses these challenges through:
 - **[Android TextToSpeech API](https://developer.android.com/reference/android/speech/tts/TextToSpeech)**: Mobile TTS.
 - **[Android Vibrator API](https://developer.android.com/reference/android/os/Vibrator)**: Haptic feedback.
 - **[Android SpeechRecognizer API](https://developer.android.com/reference/android/speech/SpeechRecognizer)**: Voice commands.
+- **[Tesseract OCR](https://github.com/UB-Mannheim/tesseract)**: Lightweight CPU-based text recognition.
 
 ---
 
@@ -262,8 +259,6 @@ GabAi/
 │   ├── asl_video_tracks.py             # ASL WebRTC track
 │   ├── ocr_detection.py                # Tesseract OCR pipeline
 │   ├── ocr_video_tracks.py             # OCR WebRTC track
-│   ├── easyocr_detection.py            # EasyOCR pipeline
-│   ├── easyocr_video_tracks.py         # EasyOCR WebRTC track
 │   ├── color_detection.py              # Color classification pipeline
 │   ├── color_video_tracks.py           # Color WebRTC track
 │   ├── tts_manager.py                  # Server-side TTS queue (fallback)
@@ -298,7 +293,6 @@ GabAi/
 │   │           ├── NavigationModule.kt # Navigation listener
 │   │           ├── AslModule.kt        # ASL listener
 │   │           ├── OcrModule.kt        # OCR listener
-│   │           ├── EasyOcrModule.kt    # EasyOCR listener
 │   │           ├── ColorModule.kt      # Color listener
 │   │           ├── ModelManager.kt     # Model initialization
 │   │           └── ServerManager.kt    # WebRTC lifecycle
@@ -343,7 +337,6 @@ torchvision>=0.15.0
 opencv-python>=4.8.0
 numpy>=1.24.0
 ultralytics>=8.0.0
-easyocr>=1.6.0
 pytesseract>=0.3.10
 aiohttp>=3.8.0
 aiortc>=1.5.0
@@ -427,7 +420,7 @@ python backend/config.py  # Should load all models without errors
 cd backend
 python servertest.py
 ```
-Runs on `http://0.0.0.0:8080`. Supports navigation, OCR, EasyOCR, ASL, and color modes.
+Runs on `http://0.0.0.0:8080`. Supports navigation, OCR, ASL, and color modes.
 
 #### Minimal Relay Server
 ```bash
@@ -529,7 +522,7 @@ python servertest.py
 ```
 
 #### 2. Launch Android App
-- Select a mode: Navigation, ASL, OCR, EasyOCR, or Color.
+- Select a mode: Navigation, ASL, OCR, or Color.
 - Grant camera and microphone permissions.
 - The app will connect to the server via WebRTC.
 
@@ -548,9 +541,9 @@ python servertest.py
 5. Haptics confirm each instruction.
 
 #### OCR Mode
-1. Select OCR (Tesseract) or Easy OCR from menu.
+1. Select OCR mode from menu.
 2. Point camera at text.
-3. Backend preprocesses frame, runs OCR, and stabilizes output.
+3. Backend preprocesses frame, runs Tesseract OCR, and stabilizes output.
 4. App speaks: "The sign says: Walk here."
 5. User can request repeat or translation.
 
@@ -636,9 +629,9 @@ All data is JSON-formatted, sent over negotiated WebRTC data channels:
 }
 ```
 
-#### OCR Channels
+#### OCR Channel
 
-**Tesseract/EasyOCR Output**:
+**Tesseract Output**:
 ```json
 {
   "nav_command": "The sign says: Walk here",
@@ -839,7 +832,7 @@ This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for d
 
 - **[Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2)**: Universal monocular depth estimation.
 - **[YOLOv8](https://github.com/ultralytics/ultralytics)**: Object detection framework.
-- **[EasyOCR](https://github.com/JaidedAI/EasyOCR)**: Multi-language text recognition.
+- **[Tesseract OCR](https://github.com/UB-Mannheim/tesseract)**: Lightweight text recognition.
 - **[OpenCV](https://opencv.org/)**: Computer vision library.
 - **[WebRTC](https://webrtc.org/)**: Real-time communication standard.
 - **[Android WebRTC](https://github.com/google/webrtc/tree/master/sdk/android)**: Mobile WebRTC implementation.
