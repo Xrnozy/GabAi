@@ -37,6 +37,7 @@ from video_tracks import (
 from asl_video_tracks import AslVideoTrack
 from ocr_video_tracks import OcrVideoTrack
 from color_video_tracks import ColorVideoTrack
+from easyocr_video_tracks import EasyOcrVideoTrack
 
 
 # ---------------------------------------------------------------------------
@@ -58,7 +59,7 @@ sse_queues: set = set()
 # Track which PCs are viewers vs senders
 viewer_pcs: set = set()
 sender_pc = None
-active_processing_mode: str = "navigation"  # "navigation" or "asl" or "ocr" or "color"
+active_processing_mode: str = "navigation"  # "navigation" or "asl" or "ocr" or "easyocr" or "color"
 
 
 # ---------------------------------------------------------------------------
@@ -257,7 +258,7 @@ async def offer(request):
     try:
         params    = await request.json()
         req_mode = str(params.get("mode", "navigation")).strip().lower()
-        if req_mode not in ("navigation", "asl", "ocr", "color"):
+        if req_mode not in ("navigation", "asl", "ocr", "easyocr", "color"):
             req_mode = "navigation"
         sdp_offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
         validate_sdp(params["sdp"], "Client Offer")
@@ -341,6 +342,12 @@ async def offer(request):
                 pc.addTrack(raw_preview)
                 pc.addTrack(OcrVideoTrack(ocr_input, pcs))
                 print("OCR viewer: added raw preview + OCR overlay track")
+            elif active_processing_mode == "easyocr":
+                raw_preview = subscribe_relay_track(active_video_track)
+                ocr_input = subscribe_relay_track(active_video_track)
+                pc.addTrack(raw_preview)
+                pc.addTrack(EasyOcrVideoTrack(ocr_input, pcs))
+                print("EASYOCR viewer: added raw preview + EasyOCR overlay track")
             elif active_processing_mode == "color":
                 raw_preview = subscribe_relay_track(active_video_track)
                 color_input = subscribe_relay_track(active_video_track)
@@ -380,6 +387,10 @@ async def offer(request):
                 raw_track = subscribe_relay_track(active_video_track)
                 pc.addTrack(OcrVideoTrack(raw_track, pcs))
                 print("OCR sender: added OCR-only track (text recognition mode)")
+            elif req_mode == "easyocr" and active_video_track:
+                raw_track = subscribe_relay_track(active_video_track)
+                pc.addTrack(EasyOcrVideoTrack(raw_track, pcs))
+                print("EASYOCR sender: added EasyOCR-only track (text recognition mode)")
             elif req_mode == "color" and active_video_track:
                 raw_track = subscribe_relay_track(active_video_track)
                 pc.addTrack(ColorVideoTrack(raw_track, pcs))

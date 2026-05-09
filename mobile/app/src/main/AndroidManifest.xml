@@ -53,6 +53,10 @@
         <activity
             android:name=".ColorActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".EasyOcrActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

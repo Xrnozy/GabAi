@@ -4,10 +4,11 @@ import time
 from typing import Optional
 
 import cv2
+import numpy as np
 from aiortc import VideoStreamTrack
 from av import VideoFrame
 
-from ocr_detection import ocr_assistant, ocr_recognizer
+from ocr_detection import ocr_recognizer, ocr_assistant
 
 
 def resize_preserve_aspect(frame, max_dim=320):
@@ -17,18 +18,12 @@ def resize_preserve_aspect(frame, max_dim=320):
     scale = max_dim / float(max(h, w))
     return cv2.resize(frame, (int(w * scale), int(h * scale)))
 
+
 def _preprocess_for_ocr(frame_bgr):
-    """
-    Lightweight preprocessing to make printed text pop:
-    - upscale (done before calling this)
-    - contrast normalize (CLAHE)
-    - mild sharpen
-    """
     try:
         gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         gray = clahe.apply(gray)
-        # Unsharp mask
         blur = cv2.GaussianBlur(gray, (0, 0), 1.0)
         sharp = cv2.addWeighted(gray, 1.6, blur, -0.6, 0)
         return cv2.cvtColor(sharp, cv2.COLOR_GRAY2BGR)
@@ -38,11 +33,11 @@ def _preprocess_for_ocr(frame_bgr):
 
 class OcrVideoTrack(VideoStreamTrack):
     """
-    OCR-only inference track.
-    Runs OCR and emits recognized text to the mobile navigation data channel.
+    Tesseract-only inference track.
+    Runs pytesseract and emits recognized text to the mobile navigation data channel.
     """
 
-    def __init__(self, track, pcs_ref: set, infer_every_s: float = 0.12, ocr_max_dim: int = 960):
+    def __init__(self, track, pcs_ref: set, infer_every_s: float = 0.25, ocr_max_dim: int = 960):
         super().__init__()
         self.track = track
         self.pcs_ref = pcs_ref
@@ -55,7 +50,7 @@ class OcrVideoTrack(VideoStreamTrack):
     async def recv(self):
         frame = await self.track.recv()
         frame_bgr = frame.to_ndarray(format="bgr24")
-        # IMPORTANT: OCR needs more pixels than navigation overlays.
+
         frame_for_ocr = resize_preserve_aspect(frame_bgr, self.ocr_max_dim)
         frame_for_ocr = _preprocess_for_ocr(frame_for_ocr)
 
@@ -68,7 +63,6 @@ class OcrVideoTrack(VideoStreamTrack):
 
         if do_infer:
             self._last_infer_time = now
-            # Prevent inference pile-ups on slower CPUs.
             if not self._inference_in_flight:
                 self._inference_in_flight = True
                 try:
@@ -84,6 +78,7 @@ class OcrVideoTrack(VideoStreamTrack):
                 "nav_command": text,
                 "confidence": round(conf, 3),
                 "should_speak": bool(should_speak),
+                "mode": "ocr",
             }
             try:
                 payload = json.dumps(nav_data)
@@ -101,7 +96,6 @@ class OcrVideoTrack(VideoStreamTrack):
             except Exception:
                 pass
 
-        # Keep the streamed video lightweight for preview; only OCR uses the upscaled buffer.
         overlay = resize_preserve_aspect(frame_bgr, 640)
         if self._last_text:
             try:

@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
 
     private val openingMode = AtomicReference<Mode?>(null)
 
-    private enum class Mode { NAVIGATION, ASL, OCR, COLOR }
+    private enum class Mode { NAVIGATION, ASL, OCR, EASY_OCR, COLOR }
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -47,15 +47,10 @@ class MainActivity : AppCompatActivity() {
         tts = TtsService(this, Locale.US)
         haptics = Haptics(this)
 
-        // Bind cards (now LinearLayouts instead of Buttons)
-        val btnNavigation = findViewById<LinearLayout>(R.id.btn_navigation)
-        val btnAsl = findViewById<LinearLayout>(R.id.btn_asl)
-        val btnOcr = findViewById<LinearLayout>(R.id.btn_ocr)
-        val btnColor = findViewById<LinearLayout>(R.id.btn_color)
-
-        // Set dynamic greeting based on time of day
-        val tvTitle = findViewById<TextView>(R.id.tv_title)
-        tvTitle.text = getGreeting()
+        val btnNavigation = findViewById<android.widget.Button>(R.id.btn_navigation)
+        val btnAsl = findViewById<android.widget.Button>(R.id.btn_asl)
+        val btnOcr = findViewById<android.widget.Button>(R.id.btn_ocr)
+        val btnColor = findViewById<android.widget.Button>(R.id.btn_color)
 
         // Ensure TalkBack focuses the primary actions early.
         ViewCompat.setAccessibilityHeading(tvTitle, true)
@@ -76,6 +71,9 @@ class MainActivity : AppCompatActivity() {
         }
         btnOcr.setOnFocusChangeListener { v, hasFocus ->
             speakButtonNameOnFocus(v, hasFocus, "O C R")
+        }
+        btnEasyOcr.setOnFocusChangeListener { v, hasFocus ->
+            speakButtonNameOnFocus(v, hasFocus, "Easy O C R")
         }
         btnColor.setOnFocusChangeListener { v, hasFocus ->
             speakButtonNameOnFocus(v, hasFocus, "Color")
@@ -99,6 +97,12 @@ class MainActivity : AppCompatActivity() {
             openMode(Mode.OCR)
         }
 
+        btnEasyOcr.setOnClickListener {
+            haptics.click()
+            tts.speak("Easy O C R")
+            openMode(Mode.EASY_OCR)
+        }
+
         btnColor.setOnClickListener {
             haptics.click()
             tts.speak("Color")
@@ -119,6 +123,10 @@ class MainActivity : AppCompatActivity() {
                     }
                     Mode.OCR -> {
                         openMode(Mode.OCR)
+                        true
+                    }
+                    Mode.EASY_OCR -> {
+                        openMode(Mode.EASY_OCR)
                         true
                     }
                     Mode.COLOR -> {
@@ -145,7 +153,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tv_title).text = getGreeting()
 
         // Immediate voice guidance (blind-friendly).
-        tts.speak("Welcome. Say Navigation, A S L, O C R, or Color.")
+        tts.speak("Welcome. Say Navigation, A S L, O C R, Easy O C R, or Color.")
 
         ensureMicPermissionAndStartListening()
     }
@@ -196,6 +204,10 @@ class MainActivity : AppCompatActivity() {
                 tts.speak("Opening O C R mode")
                 startActivity(Intent(this, OcrActivity::class.java))
             }
+            Mode.EASY_OCR -> {
+                tts.speak("Opening Easy O C R mode")
+                startActivity(Intent(this, EasyOcrActivity::class.java))
+            }
             Mode.COLOR -> {
                 tts.speak("Opening Color mode")
                 startActivity(Intent(this, ColorActivity::class.java))
@@ -240,6 +252,15 @@ class MainActivity : AppCompatActivity() {
                 normalized.startsWith("o c r ") ||
                 normalized.endsWith(" o c r")
 
+        val isEasyOcr =
+            normalized == "easy ocr" ||
+                normalized == "easy o c r" ||
+                normalized == "open easy ocr" ||
+                normalized == "open easy o c r" ||
+                normalized.contains(" easy ocr ") ||
+                normalized.startsWith("easy ocr ") ||
+                normalized.endsWith(" easy ocr")
+
         val isNav =
             normalized == "navigation" ||
                 normalized == "open navigation" ||
@@ -262,6 +283,7 @@ class MainActivity : AppCompatActivity() {
         return when {
             // Prefer ASL when both keywords are present in the same noisy phrase.
             isAsl -> Mode.ASL
+            isEasyOcr -> Mode.EASY_OCR
             isOcr -> Mode.OCR
             isNav -> Mode.NAVIGATION
             isColor -> Mode.COLOR

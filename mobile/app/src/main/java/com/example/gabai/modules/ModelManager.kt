@@ -7,6 +7,7 @@ class ModelManager {
     private val aslInitialized = AtomicBoolean(false)
     private val ocrInitialized = AtomicBoolean(false)
     private val colorInitialized = AtomicBoolean(false)
+    private val easyOcrInitialized = AtomicBoolean(false)
 
     fun ensureNavigationModelsInitialized() {
         if (!navigationInitialized.compareAndSet(false, true)) return
@@ -28,6 +29,11 @@ class ModelManager {
         // Lazy-load color understanding pipeline here (if needed).
     }
 
+    fun ensureEasyOcrModelsInitialized() {
+        if (!easyOcrInitialized.compareAndSet(false, true)) return
+        // EasyOCR runs on server; keep as a placeholder for symmetry.
+    }
+
     fun disposeNavigationModels() {
         // Optional: release navigation-only resources if you want aggressive teardown.
     }
@@ -42,6 +48,10 @@ class ModelManager {
 
     fun disposeColorModels() {
         // Optional: release color-only resources if you want aggressive teardown.
+    }
+
+    fun disposeEasyOcrModels() {
+        // Optional: release easyocr-only resources if you want aggressive teardown.
     }
 }
 
